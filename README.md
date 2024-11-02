@@ -1,3 +1,5 @@
+![enviloup logo](./docs/assets/logo/enviloup_logo.png)
+
 # Enviloup Videos
 
 Streaming media service like YouTube
