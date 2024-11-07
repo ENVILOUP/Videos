@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "recomendations"
+version = "1.0.0"
+description = "The service provides content recommendations for users"
+authors = ["jojopko <konstantin.serez@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.115.4"
+redis = "^5.2.0"
+uvicorn = "^0.32.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
