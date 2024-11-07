@@ -16,4 +16,4 @@ docker compose build
 docker compose up -d
 ```
 
-3. Open and make GET for [link](http://enviloup.local/recommendations/) and check
+3. Open and make GET for [link](http://enviloup.local:8080/recommendations/) and check
