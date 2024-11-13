@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "content"
+version = "1.0.0"
+description = "Provides information about content (videos, streams)"
+authors = ["jojopko <konstantin.serez@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.115.4"
+asyncpg = "^0.30.0"
+uvicorn = "^0.32.0"
+
+
+[tool.poetry.group.dev.dependencies]
+yoyo-migrations = "^9.0.0"
+psycopg2-binary = "^2.9.10"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

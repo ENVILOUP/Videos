@@ -1,0 +1,29 @@
+services:
+  content-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/app
+    command: "--log-level debug"
+  nginx:
+    image: nginx
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+  pg:
+    image: postgres:15.8-bullseye
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      PGDATA: /var/lib/postgres/data/pgdata
+    volumes:
+      - contentdb:/var/lib/postgres/data/pgdata
+    ports:
+      - "127.0.0.1:5432:5432"
+    
+volumes:
+  contentdb:
