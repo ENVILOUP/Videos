@@ -1,0 +1,4 @@
+lib/
+*_pycache_*
+
+*.cpython*
