@@ -1,11 +1,11 @@
 import logging
 from typing import List, Optional, Annotated
 from uuid import UUID
-from contextlib import asynccontextmanager 
 
 from fastapi import APIRouter, Depends
-from asyncpg import connect, Connection
+from asyncpg import Connection
 
+from app.dependencies import get_connection
 from app.videos.models import Video, VideoTag
 from app.videos.repositories import VideosRespository, VideosTagsRespository
 
@@ -13,16 +13,6 @@ from app.videos.repositories import VideosRespository, VideosTagsRespository
 logger = logging.getLogger('uvicorn.error')
 
 router = APIRouter()
-
-
-@asynccontextmanager
-async def get_connection() -> Connection:
-    try:
-        connection = await connect("postgres://postgres:postgres@pg:5432/postgres")
-        yield connection
-    finally:
-        await connection.close()
-
 
 
 @router.get("/{uuid}")

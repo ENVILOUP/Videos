@@ -1,8 +1,10 @@
 from typing import Optional
 from uuid import UUID
-from datetime import datetime, timezone
+from datetime import datetime
 
 from pydantic import BaseModel, field_validator
+
+from app.config import config
 
 VIDEO_TITLE_MAX_LENGTH = 255
 VIDEO_DESCRIPTION_MAX_LENGTH = 4095
@@ -29,6 +31,10 @@ class Video(BaseModel):
         if len(value) > VIDEO_DESCRIPTION_MAX_LENGTH:
             raise ValueError(f"Title must be at most {VIDEO_DESCRIPTION_MAX_LENGTH} characters")
         return value
+    
+    @field_validator('video_url', 'thumbnail_url', mode='before')
+    def concat_cdn_base_url(cls, value):
+        return f'{config.cdn_base_url}{value}'
 
 
 class VideoTag(BaseModel):
