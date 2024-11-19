@@ -44,6 +44,6 @@ steps = [
     ),
     step(
         "ALTER TABLE videos_tags ADD CONSTRAINT unique_video_tag UNIQUE (video_uuid, tag);",
-        "DROP CONSTRAINT IF EXISTS unique_video_tag;"
+        "ALTER TABLE videos_tags DROP CONSTRAINT IF EXISTS unique_video_tag;"
     )
 ]
