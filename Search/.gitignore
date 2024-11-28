@@ -1,4 +1,5 @@
 lib/
+.venv/
 *_pycache_*
 
 *.cpython*
