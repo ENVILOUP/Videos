@@ -42,7 +42,7 @@ builder.Services.AddScoped<JWTService>();
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
-	var connectionString = Environment.GetEnvironmentVariable("Database__ConnectionString")
+	var connectionString = Environment.GetEnvironmentVariable("DATABASE__CONNECTIONSTRING")
 						   ?? builder.Configuration.GetConnectionString("DefaultConnection");
 	opt.UseNpgsql(connectionString);
 });
@@ -84,14 +84,23 @@ using var scope = app.Services.CreateScope();
 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 await dbContext.Database.MigrateAsync();
 
-app.UseSwagger();
+app.UseSwagger(c =>
+{
+  c.PreSerializeFilters.Add((swagger, httpReq) =>
+  {
+    swagger.Servers = new List<OpenApiServer> { new OpenApiServer { Url = $"{httpReq.Scheme}://{httpReq.Host.Value}/{httpReq.Headers["X-Forwarded-Prefix"]}" } };
+  });
+});
+
 app.UseSwaggerUI(c => {
-	c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
+	c.SwaggerEndpoint("v1/swagger.json", "Auth API v1");
 });
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/", () => "Hello world");
 
 app.Run();
