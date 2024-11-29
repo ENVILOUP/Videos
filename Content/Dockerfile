@@ -1,13 +1,19 @@
 FROM python:3.10.15-bullseye
 
-WORKDIR /app
+WORKDIR /app/
 
-ENV PYTHONPATH /
+ENV PYTHONPATH /app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-COPY ./requirements.txt /app
+COPY ./pyproject.toml poetry.lock /app/
 
-RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN pip install --no-cache-dir poetry==1.8.4 \
+    && poetry install
 
-COPY ./app /app
+COPY ./app /app/app/
 
-ENTRYPOINT [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+EXPOSE 8000
+
+ENTRYPOINT ["sh", "-c", "poetry run uvicorn app.main:app --host 0.0.0.0 --port 8080"]
+
