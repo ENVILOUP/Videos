@@ -1,3 +1,10 @@
 services:
   search-app:
     image: enviloup/search:latest
+    networks:
+      - backend 
+  
+networks:
+  backend:
+    attachable: true
+    name: enviloup-backend
