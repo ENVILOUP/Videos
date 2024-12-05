@@ -1,0 +1,3 @@
+services:
+  content-app:
+    image: enviloup/content:latest
