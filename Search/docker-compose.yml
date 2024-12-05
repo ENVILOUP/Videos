@@ -1,0 +1,3 @@
+services:
+  search-app:
+    image: enviloup/search:latest

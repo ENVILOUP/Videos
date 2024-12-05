@@ -3,41 +3,26 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from elasticsearch import Elasticsearch
 
-app = FastAPI()
-
-origins = [
-    "http://localhost:3000",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 app = FastAPI(
     root_path="/search"
 )
 
-es = Elasticsearch("http://localhost:9200")
+es = Elasticsearch("http://elasticsearch:9200")
 
 @app.post("/")
 async def search(client_query: str):
     query_json = {
-        "query": {
-            "fuzzy": {
-                "title": {
-                    "value": client_query.casefold(),
-                    "fuzziness": 20,
-                    "transpositions": True
+            "query": {
+                "match": {
+                    "title": {
+                        "query": client_query.lower(),
+                        "fuzziness": "2"
+                    }
                 }
             }
-        }
     }
 
-    response = es.search(index="videos", body=query_json)
+    response = es.search(index="video", body=query_json)
 
     hits_list = []
 
