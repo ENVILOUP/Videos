@@ -16,3 +16,17 @@ Streaming media service like YouTube
 - Studio for authors
 - Authorization (simple and *Oauth2)
 - Write a front that you won't be ashamed to show to the guys
+
+# How to run?
+
+To start backend use:
+
+```shell
+docker compose up -d
+```
+
+If you run first time then you must run with `--build` argument
+
+# Development
+
+To develop a specific service, you can read the instructions from the README in the folder.

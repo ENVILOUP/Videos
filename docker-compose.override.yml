@@ -1,0 +1,9 @@
+services:
+  # override application settings
+  content-app:
+    depends_on:
+      - pg
+
+  recommendations-app:
+    depends_on:
+      - redis

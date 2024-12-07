@@ -1,11 +1,7 @@
 services:
   content-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
     volumes:
       - ./app:/app/app
-    command: "--log-level debug"
   nginx:
     image: nginx
     ports:
