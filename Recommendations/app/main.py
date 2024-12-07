@@ -13,7 +13,8 @@ class BaseMessage(BaseModel):
 
 
 app = FastAPI(
-    root_path='/recommendations'
+    title='Recommendations service',
+    root_path='/'
 )
 
 
