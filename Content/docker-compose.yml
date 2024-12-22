@@ -1,10 +1,7 @@
 services:
   content-app:
     image: enviloup/content:latest
-    networks:
-      - backend
-
-networks:
-  backend:
-    attachable: true
-    name: enviloup-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: "--log-level debug"

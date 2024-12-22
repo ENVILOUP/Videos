@@ -7,8 +7,7 @@ from app.views import router as root_router
 
 app = FastAPI(
     title='Content Service',
-    debug=config.debug,
-    root_path='/content'
+    debug=config.debug
 )
 
 app.include_router(root_router, prefix="")
