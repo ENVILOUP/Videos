@@ -14,12 +14,13 @@ namespace app.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class AuthController([FromServices] UserManager<IdentityUser> userManager, [FromServices] JWTService jwtService, [FromServices] AppDbContext dbContext, ILogger<AuthController> logger) : ControllerBase
+	public class AuthController([FromServices] UserManager<IdentityUser> userManager, [FromServices] JWTService jwtService, [FromServices] AppDbContext dbContext, ILogger<AuthController> logger, [FromServices] IConfiguration configuration) : ControllerBase
 	{
 		private readonly UserManager<IdentityUser> _userManager = userManager;
 		private readonly JWTService _jwtService = jwtService;
 		private readonly AppDbContext _dbContext = dbContext;
 		private readonly ILogger<AuthController> _logger = logger;
+		private readonly IConfiguration _configuration = configuration;
 
 		[HttpPost("register")]
 		public async Task<IActionResult> Register([FromBody] RegisterModel model)
@@ -39,7 +40,7 @@ namespace app.Controllers
 			{
 				Token = refreshToken,
 				UserId = user.Id,
-				ExpiryDate = DateTime.UtcNow.AddDays(7),
+				ExpiryDate = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("JWT:RefreshTokenExpiration")),
 			};
 
 			await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity);
@@ -70,7 +71,7 @@ namespace app.Controllers
 			{
 				Token = refreshToken,
 				UserId = user.Id,
-				ExpiryDate = DateTime.UtcNow.AddDays(7),
+				ExpiryDate = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("JWT:RefreshTokenExpiration")),
 			};
 
 			await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity);
@@ -106,13 +107,36 @@ namespace app.Controllers
 			{
 				Token = newRefreshToken,
 				UserId = user.Id,
-				ExpiryDate = DateTime.UtcNow.AddDays(7),
+				ExpiryDate = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("JWT:RefreshTokenExpiration")),
 			};
 
 			await _dbContext.RefreshTokens.AddAsync(newRefreshTokenEntity);
 			await _dbContext.SaveChangesAsync();
 
 			return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
+		}
+
+		[HttpPost("revoke-token")]
+		public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenModel model)
+		{
+			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == model.RefreshToken);
+
+			if (refreshToken == null)
+			{
+				return BadRequest(new { message = "Invalid refresh token" });
+			}
+
+			if (refreshToken.IsRevoked)
+			{
+				return BadRequest(new { message = "Refresh token has already been revoked" });
+			}
+
+			refreshToken.IsRevoked = true;
+
+			_dbContext.RefreshTokens.Update(refreshToken);
+			await _dbContext.SaveChangesAsync();
+
+			return Ok(new { message = "Refresh token revoked successfully" });
 		}
 
 		[Authorize]

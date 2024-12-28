@@ -34,7 +34,7 @@ namespace app.Services
 				issuer: _configuration["JWT:Issuer"],
 				audience: _configuration["JWT:Audience"],
 				claims: claims,
-				expires: DateTime.UtcNow.AddMinutes(30),
+				expires: DateTime.UtcNow.AddMinutes(_configuration.GetValue<int>("JWT:AccessTokenExpiration")),
 				signingCredentials: creds
 			);
 
