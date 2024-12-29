@@ -16,12 +16,12 @@ class VideosRespository:
     @staticmethod
     async def get_video_by_uuid(conn: Connection, uuid: UUID) -> Optional[Video]:
         query = """
-            SELECT 
+            SELECT
+                id,
                 video_uuid,
+                yt_id,
                 title,
                 description,
-                video_url,
-                thumbnail_url,
                 created_at,
                 modified_at
             FROM videos
@@ -38,12 +38,12 @@ class VideosRespository:
     @staticmethod
     async def get_videos_by_uuid_in(conn: Connection, uuids: List[UUID]) -> List[Video]:
         query = """
-            SELECT 
+            SELECT
+                id,
                 video_uuid,
+                yt_id,
                 title,
                 description,
-                video_url,
-                thumbnail_url,
                 created_at,
                 modified_at
             FROM videos
@@ -64,8 +64,6 @@ class VideosRespository:
                 (video_uuid,
                  title,
                  description,
-                 video_url,
-                 thumbnail_url,
                  created_at,
                  modified_at)
             VALUES
@@ -99,7 +97,12 @@ class VideosTagsRespository:
     @staticmethod
     async def get_tags_for_video(conn: Connection, video_uuid: UUID) -> List[VideoTag]:
         query = """
-            SELECT video_uuid, tag
+            SELECT
+                id,
+                video_uuid,
+                tag,
+                created_at,
+                modified_at
             FROM videos_tags
             WHERE video_uuid = $1;
         """

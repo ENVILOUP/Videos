@@ -3,7 +3,7 @@ from os import getenv
 
 
 def getenv_bool(key: str, default: bool) -> bool:
-    value = getenv('DEBUG')
+    value = getenv(key)
     if not value:
         return default
     if value.lower() == 'true':
@@ -11,12 +11,11 @@ def getenv_bool(key: str, default: bool) -> bool:
     return False
 
 
-
 @dataclass(frozen=True)
 class Config:
     debug: bool = getenv_bool('DEBUG', True)
     database: str = getenv('DATABASE', 'postgres://postgres:postgres@pg:5432/postgres')
-    cdn_base_url: str = getenv('CDN_BASE_URL', 'http://cdn.enviloup.local:8080/')
+    cdn_base_url: str = getenv('CDN_BASE_URL', 'http://cdn.enviloup.localhost')
 
 
 config = Config()
