@@ -1,0 +1,4 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP.NET Core service.
+services:
+  authorization-app:
+    image: enviloup/authorization:latest
