@@ -2,3 +2,6 @@
 services:
   authorization-app:
     image: enviloup/authorization:latest
+    build: 
+      context: .
+      dockerfile: ./Dockerfile.production
