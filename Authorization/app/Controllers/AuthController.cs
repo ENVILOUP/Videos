@@ -36,12 +36,7 @@ namespace app.Controllers
 			var accessToken = _jwtService.GenerateJwtToken(user);
 			var refreshToken = _jwtService.GenerateRefreshToken();
 
-			var refreshTokenEntity = new RefreshToken
-			{
-				Token = refreshToken,
-				UserId = user.Id,
-				ExpiryDate = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("JWT:RefreshTokenExpiration")),
-			};
+			var refreshTokenEntity = GetNewRefreshToken(user, refreshToken);
 
 			await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity);
 			await _dbContext.SaveChangesAsync();
@@ -67,12 +62,7 @@ namespace app.Controllers
 			var accessToken = _jwtService.GenerateJwtToken(user);
 			var refreshToken = _jwtService.GenerateRefreshToken();
 
-			var refreshTokenEntity = new RefreshToken
-			{
-				Token = refreshToken,
-				UserId = user.Id,
-				ExpiryDate = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("JWT:RefreshTokenExpiration")),
-			};
+			var refreshTokenEntity = GetNewRefreshToken(user, refreshToken);
 
 			await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity);
 			await _dbContext.SaveChangesAsync();
@@ -102,13 +92,7 @@ namespace app.Controllers
 
 			var newAccessToken = _jwtService.GenerateJwtToken(user);
 			var newRefreshToken = _jwtService.GenerateRefreshToken();
-
-			var newRefreshTokenEntity = new RefreshToken
-			{
-				Token = newRefreshToken,
-				UserId = user.Id,
-				ExpiryDate = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("JWT:RefreshTokenExpiration")),
-			};
+			var newRefreshTokenEntity = GetNewRefreshToken(user, newRefreshToken);
 
 			await _dbContext.RefreshTokens.AddAsync(newRefreshTokenEntity);
 			await _dbContext.SaveChangesAsync();
@@ -116,7 +100,7 @@ namespace app.Controllers
 			return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
 		}
 
-		[HttpPost("revoke-token")]
+				[HttpPost("revoke-token")]
 		public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenModel model)
 		{
 			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == model.RefreshToken);
@@ -155,6 +139,16 @@ namespace app.Controllers
 			await _dbContext.SaveChangesAsync();
 
 			return Ok(new { message = "Logout successful" });
+		}
+
+		private RefreshToken GetNewRefreshToken(IdentityUser user, string newRefreshToken)
+		{
+			return new RefreshToken
+			{
+				Token = newRefreshToken,
+				UserId = user.Id,
+				ExpiryDate = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("JWT:RefreshTokenExpirationDays")),
+			};
 		}
 	}
 }

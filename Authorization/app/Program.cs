@@ -13,10 +13,7 @@ builder.Services.ConfigureJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-	app.UseDatabaseMigration();
-}
+app.UseDatabaseMigration();
 
 app.UseMiddlewareComponents();
 
