@@ -1,19 +1,20 @@
-from fastapi import FastAPI, Query
-import random
-import config
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+from app.views import router as search_router
+from app.config import config
 
 app = FastAPI(
-    root_path="/search"
+    title="Search Service",
+    debug=config.debug
 )
 
+class BaseMessage(BaseModel):
+    status: int
+    message: str
 
-@app.post("/find")
-async def search(page: int = Query(1, ge=1), size: int = Query(10, gt=0), query: str = Query("")):
+@app.get("/")
+async def health_check():
+    return BaseMessage(status=200, message="Ok") 
 
-    start_index = (page - 1) * size
-    end_index = start_index + size
-    paginated_ids = config.enviloup_ids[start_index:end_index]
-
-    random.shuffle(paginated_ids)
-
-    return paginated_ids 
+app.include_router(search_router, prefix="")
