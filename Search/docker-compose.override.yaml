@@ -13,17 +13,3 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
-
-  elasticsearch:
-    image: elasticsearch:8.8.0
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m  # Adjust memory settings as needed
-    ports:
-      - "127.0.0.1:9200:9200"  # HTTP port
-    volumes:
-      - esdata:/usr/share/elasticsearch/data  # Persistent storage for Elasticsearch data
-
-volumes:
-  esdata:  # Volume for Elasticsearch data persistence
