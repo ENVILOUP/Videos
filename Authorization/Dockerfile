@@ -1,8 +1,8 @@
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0
 
-ARG configuration=Debug
+ARG configuration=Release
 
-ENV ASPNETCORE_URLS=http://+:5025
+ENV ASPNETCORE_URLS=http://+:8080
 
 WORKDIR /app
 
@@ -14,8 +14,7 @@ COPY ./app /app
 
 RUN dotnet build "app.csproj" -c $configuration -o /tmp/build
 
-USER app
 
-EXPOSE 5025
+EXPOSE 8080 
 
 ENTRYPOINT ["dotnet", "/tmp/build/app.dll"]

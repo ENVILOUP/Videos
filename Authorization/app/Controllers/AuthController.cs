@@ -33,15 +33,7 @@ namespace app.Controllers
 				return BadRequest(result.Errors);
 			}
 
-			var accessToken = _jwtService.GenerateJwtToken(user);
-			var refreshToken = _jwtService.GenerateRefreshToken();
-
-			var refreshTokenEntity = GetNewRefreshToken(user, refreshToken);
-
-			await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity);
-			await _dbContext.SaveChangesAsync();
-
-			return Ok(new { AccessToken = accessToken, RefreshToken = refreshToken });
+			return Ok();
 		}
 
 		[HttpPost("login")]
@@ -80,7 +72,6 @@ namespace app.Controllers
 				return Unauthorized(new { message = "Invalid or expired refresh token" });
 			}
 
-			refreshToken.IsUsed = true;
 			_dbContext.RefreshTokens.Update(refreshToken);
 			await _dbContext.SaveChangesAsync();
 
@@ -91,16 +82,23 @@ namespace app.Controllers
 			}
 
 			var newAccessToken = _jwtService.GenerateJwtToken(user);
-			var newRefreshToken = _jwtService.GenerateRefreshToken();
-			var newRefreshTokenEntity = GetNewRefreshToken(user, newRefreshToken);
+			var newRefreshToken = model.RefreshToken;
 
-			await _dbContext.RefreshTokens.AddAsync(newRefreshTokenEntity);
-			await _dbContext.SaveChangesAsync();
+			if (refreshToken.ExpiryDate <= DateTime.UtcNow.AddMinutes(5))
+			{
+				refreshToken.IsUsed = true;
+				newRefreshToken = _jwtService.GenerateRefreshToken();
+				var newRefreshTokenEntity = GetNewRefreshToken(user, newRefreshToken);
+
+				await _dbContext.RefreshTokens.AddAsync(newRefreshTokenEntity);
+				_dbContext.RefreshTokens.Update(refreshToken);
+				await _dbContext.SaveChangesAsync();
+			}
 
 			return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
 		}
 
-				[HttpPost("revoke-token")]
+		[HttpPost("revoke-token")]
 		public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenModel model)
 		{
 			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == model.RefreshToken);
@@ -135,7 +133,9 @@ namespace app.Controllers
 
 			var tokens = _dbContext.RefreshTokens.Where(rt => rt.UserId == userId).ToList();
 
-			_dbContext.RefreshTokens.RemoveRange(tokens);
+			tokens.ForEach(rt => rt.IsRevoked = true);
+			_dbContext.RefreshTokens.UpdateRange(tokens);
+
 			await _dbContext.SaveChangesAsync();
 
 			return Ok(new { message = "Logout successful" });
@@ -143,11 +143,18 @@ namespace app.Controllers
 
 		private RefreshToken GetNewRefreshToken(IdentityUser user, string newRefreshToken)
 		{
+			var expiresValue = _configuration.GetSection("JWT:RefreshTokenExpirationDays").Value;
+
+			if (string.IsNullOrEmpty(expiresValue))
+			{
+				throw new InvalidOperationException("JWT:RefreshTokenExpirationDays not found");
+			}
+
 			return new RefreshToken
 			{
 				Token = newRefreshToken,
 				UserId = user.Id,
-				ExpiryDate = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("JWT:RefreshTokenExpirationDays")),
+				ExpiryDate = DateTime.UtcNow.AddDays(Convert.ToDouble(expiresValue)),
 			};
 		}
 	}

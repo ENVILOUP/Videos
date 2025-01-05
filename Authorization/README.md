@@ -2,7 +2,7 @@
 
 This service is responsible for handling user authentication and authorization.
 
-[Swagger](http://enviloup.local/auth/swagger/index.html)
+[Swagger](http://auth.api.enviloup.localhost/docs)
 
 ## Development
 
@@ -38,7 +38,7 @@ Before starting development, ensure that you have the following installed:
 
    The service provides a Swagger UI to interact with the API and test the endpoints. You can access it at:
 
-   [Swagger Documentation](http://enviloup.local/auth/swagger/index.html)
+   [Swagger Documentation](http://auth.api.enviloup.localhost/docs)
 
 ### Environment Variables
 
@@ -54,6 +54,6 @@ The following environment variables need to be configured in the `docker-compose
 
 - **Service startup issues**: If the service does not start, make sure the database container (`db`) is running and accessible.
 
-- **Port conflicts**: Ensure that the ports you're using for the application (e.g., port 80 for NGINX or 5025 for the app) are not in use by other services on your machine.
+- **Port conflicts**: Ensure that the ports you're using for the application (e.g., port 80 for NGINX or 8080 for the app) are not in use by other services on your machine.
 
 ---

@@ -12,9 +12,11 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace app.Services
 {
-    public class JWTService(IConfiguration configuration)
+    public class JWTService(IConfiguration configuration, ILogger<JWTService> logger)
     {
 		private readonly IConfiguration _configuration = configuration;
+		private readonly ILogger<JWTService> _logger = logger;
+
         public string GenerateJwtToken(IdentityUser user)
 		{
 			var jtiId = Guid.NewGuid().ToString();
@@ -23,18 +25,34 @@ namespace app.Services
 				new Claim(ClaimTypes.NameIdentifier, user.Id),
 				new Claim(JwtRegisteredClaimNames.Sub, user.Id),
 				new Claim(JwtRegisteredClaimNames.Jti, jtiId),
-				new Claim(ClaimTypes.Name, user.UserName!)
+				new Claim(ClaimTypes.Name, user.UserName ?? throw new InvalidOperationException("Username not found")),
 			};
 
-			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Key"]!));
+			string jwtKey = _configuration["JWT_KEY"] ?? throw new InvalidOperationException("JWT_Key not found");
+
+			if (string.IsNullOrEmpty(jwtKey))
+			{
+				throw new InvalidOperationException("JWT_Key not found");
+			}
+
+			_logger.LogInformation($"JWT_KEY: {jwtKey}");
+
+			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+			var expiresValue = _configuration.GetSection("JWT:AccessTokenExpirationMinutes").Value;
+
+			if (string.IsNullOrEmpty(expiresValue))
+			{
+				throw new InvalidOperationException("JWT:AccessTokenExpirationMinutes not found");
+			}
+
 			var token = new JwtSecurityToken(
-				issuer: _configuration["JWT:Issuer"],
-				audience: _configuration["JWT:Audience"],
+				issuer: _configuration.GetSection("JWT:Issuer")?.Value ?? throw new InvalidOperationException("JWT:Issuer not found"),
+				audience: _configuration.GetSection("JWT:Audience")?.Value ?? throw new InvalidOperationException("JWT:Audience not found"),
 				claims: claims,
-				expires: DateTime.UtcNow.AddMinutes(_configuration.GetValue<int>("JWT:AccessTokenExpirationMinutes")),
+				expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(expiresValue)),
 				signingCredentials: creds
 			);
 

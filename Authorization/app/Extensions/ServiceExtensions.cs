@@ -21,7 +21,7 @@ namespace app
 
 		public static void ConfigureJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
 		{
-			var key = configuration["JWT:Key"] ?? throw new InvalidOperationException("JWT:Key not found");
+			var key = configuration["JWT_KEY"] ?? throw new InvalidOperationException("JWT_KEY not found");
 
 			services.AddAuthentication(opt =>
 			{

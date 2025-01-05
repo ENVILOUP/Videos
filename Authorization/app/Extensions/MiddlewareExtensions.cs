@@ -23,7 +23,8 @@ namespace app
 
 			app.UseSwaggerUI(c =>
 			{
-				c.SwaggerEndpoint("v1/swagger.json", "Auth API v1");
+				c.SwaggerEndpoint("/swagger/v1/swagger.json", "Auth API v1");
+				c.RoutePrefix = "docs";
 			});
 		}
 
@@ -91,7 +92,7 @@ namespace app
 			app.UseAuthorization();  // Авторизация
 			app.UseEndpoints(endpoints =>
 			{
-				endpoints.MapGet("/", () => "Enviloup. void sex");
+				endpoints.MapGet("/", () => "pong");
 				endpoints.MapControllers(); // Подключаем контроллеры
 				endpoints.MapCustomHealthChecks(); // Подключаем проверки состояния
 			});
