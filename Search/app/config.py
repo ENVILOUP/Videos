@@ -143,6 +143,5 @@ def getenv_bool(key: str, default: bool) -> bool:
 class Config:
     debug: bool = getenv_bool('DEBUG', False)
     enviloup_ids = get_enviloup_ids()
-    cdn_base_url: str = getenv('CDN_BASE_URL', 'http://cdn.enviloup.local')
 
 config = Config()
