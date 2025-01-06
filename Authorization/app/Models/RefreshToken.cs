@@ -9,9 +9,9 @@ namespace app.Models
     public class RefreshToken
     {
 		public Guid Id { get; set; }
-		public string Token { get; set; } = null!;
-		public string UserId { get; set; } = null!;
-		public IdentityUser User { get; set; } = null!;
+		public required string Token { get; set; }
+		public required string UserId { get; set; }
+		public IdentityUser? User { get; set; }
 		public DateTime ExpiryDate { get; set; }
 		public bool IsRevoked { get; set; }
 		public bool IsUsed { get; set; }

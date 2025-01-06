@@ -26,6 +26,11 @@ namespace app.Controllers
 		[HttpPost("register")]
 		public async Task<IActionResult> Register([FromBody] RegisterModel model)
 		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
 			var user = new IdentityUser { UserName = model.Username, Email = model.Email };
 			var result = await _userManager.CreateAsync(user, model.Password);
 
@@ -40,6 +45,11 @@ namespace app.Controllers
 		[HttpPost("login")]
 		public async Task<IActionResult> Login([FromBody] LoginModel model)
 		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
 			var user = await _userManager.FindByNameAsync(model.Username);
 
 			if (user == null)
@@ -66,15 +76,20 @@ namespace app.Controllers
 		[HttpPost("refresh-token")]
 		public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenModel model)
 		{
-			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == model.RefreshToken);
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(refreshToken => refreshToken.Token == model.RefreshToken);
 
 			if (refreshToken == null)
 			{
 				return Unauthorized(new { message = "Invalid refresh token" });
 			}
 
-			int windowTimeHours = 1; //оконное время, чтобы можно было обновить refresh token и не давать пользователю форму авторизации
-			var tokenExpiryWithWindow = refreshToken.ExpiryDate.AddHours(windowTimeHours);
+			const int WINDOW_TIME_HOURS = 1;
+			var tokenExpiryWithWindow = refreshToken.ExpiryDate.AddHours(WINDOW_TIME_HOURS);
 
 			if (tokenExpiryWithWindow <= DateTime.UtcNow || refreshToken.IsRevoked || refreshToken.IsUsed)
 			{
@@ -111,7 +126,12 @@ namespace app.Controllers
 		[HttpPost("revoke-token")]
 		public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenModel model)
 		{
-			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == model.RefreshToken);
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(refreshToken => refreshToken.Token == model.RefreshToken);
 
 			if (refreshToken == null)
 			{
@@ -141,9 +161,9 @@ namespace app.Controllers
 				return BadRequest(new { message = "User not found" });
 			}
 
-			var tokens = _dbContext.RefreshTokens.Where(rt => rt.UserId == userId).ToList();
+			var tokens = _dbContext.RefreshTokens.Where(refreshToken => refreshToken.UserId == userId).ToList();
 
-			tokens.ForEach(rt => rt.IsRevoked = true);
+			tokens.ForEach(refreshToken => refreshToken.IsRevoked = true);
 			_dbContext.RefreshTokens.UpdateRange(tokens);
 
 			await _dbContext.SaveChangesAsync();
@@ -160,15 +180,14 @@ namespace app.Controllers
 				throw new InvalidOperationException("JWT:RefreshTokenExpirationDays not found");
 			}
 
-			var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time") ?? throw new InvalidOperationException("Time zone not found.");
-
-			var currentDateTime = TimeZoneInfo.ConvertTime(DateTime.UtcNow, timeZone);
+			var currentDateTimeUtc = DateTime.UtcNow;
+			var expiryDateUtc = currentDateTimeUtc.AddDays(Convert.ToDouble(expiresValue));
 
 			return new RefreshToken
 			{
 				Token = newRefreshToken,
 				UserId = user.Id,
-				ExpiryDate = DateTime.SpecifyKind(currentDateTime.AddDays(Convert.ToDouble(expiresValue)), DateTimeKind.Utc),
+				ExpiryDate = DateTime.SpecifyKind(expiryDateUtc, DateTimeKind.Utc),
 			};
 		}
 	}

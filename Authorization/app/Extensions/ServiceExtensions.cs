@@ -82,6 +82,7 @@ namespace app
 				opt.Password.RequireLowercase = false;
 				opt.Password.RequireUppercase = false;
 				opt.Password.RequireNonAlphanumeric = false;
+				opt.User.RequireUniqueEmail = true;
 			})
 			.AddEntityFrameworkStores<AppDbContext>()
 			.AddDefaultTokenProviders();

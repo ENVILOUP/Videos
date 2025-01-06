@@ -19,9 +19,9 @@ namespace app.Models
 		{
 			base.OnModelCreating(builder);
 			builder.Entity<RefreshToken>()
-				.HasOne(rt => rt.User)
+				.HasOne(refreshToken => refreshToken.User)
 				.WithMany()
-				.HasForeignKey(rt => rt.UserId);
+				.HasForeignKey(refreshToken => refreshToken.UserId);
 		}
 	}
 }
