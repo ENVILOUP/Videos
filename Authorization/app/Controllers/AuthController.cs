@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -67,13 +68,18 @@ namespace app.Controllers
 		{
 			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == model.RefreshToken);
 
-			if (refreshToken == null || refreshToken.ExpiryDate <= DateTime.UtcNow || refreshToken.IsRevoked || refreshToken.IsUsed)
+			if (refreshToken == null)
+			{
+				return Unauthorized(new { message = "Invalid refresh token" });
+			}
+
+			int windowTimeHours = 1; //оконное время, чтобы можно было обновить refresh token и не давать пользователю форму авторизации
+			var tokenExpiryWithWindow = refreshToken.ExpiryDate.AddHours(windowTimeHours);
+
+			if (tokenExpiryWithWindow <= DateTime.UtcNow || refreshToken.IsRevoked || refreshToken.IsUsed)
 			{
 				return Unauthorized(new { message = "Invalid or expired refresh token" });
 			}
-
-			_dbContext.RefreshTokens.Update(refreshToken);
-			await _dbContext.SaveChangesAsync();
 
 			var user = await _userManager.FindByIdAsync(refreshToken.UserId);
 			if (user == null)
@@ -84,15 +90,19 @@ namespace app.Controllers
 			var newAccessToken = _jwtService.GenerateJwtToken(user);
 			var newRefreshToken = model.RefreshToken;
 
-			if (refreshToken.ExpiryDate <= DateTime.UtcNow.AddMinutes(5))
+			if (refreshToken.ExpiryDate <= DateTime.UtcNow)
 			{
-				refreshToken.IsUsed = true;
+				using var transaction = _dbContext.Database.BeginTransaction();
+
 				newRefreshToken = _jwtService.GenerateRefreshToken();
 				var newRefreshTokenEntity = GetNewRefreshToken(user, newRefreshToken);
-
 				await _dbContext.RefreshTokens.AddAsync(newRefreshTokenEntity);
+
+				refreshToken.IsUsed = true;
 				_dbContext.RefreshTokens.Update(refreshToken);
 				await _dbContext.SaveChangesAsync();
+
+				await transaction.CommitAsync();
 			}
 
 			return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
@@ -150,11 +160,15 @@ namespace app.Controllers
 				throw new InvalidOperationException("JWT:RefreshTokenExpirationDays not found");
 			}
 
+			var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time") ?? throw new InvalidOperationException("Time zone not found.");
+
+			var currentDateTime = TimeZoneInfo.ConvertTime(DateTime.UtcNow, timeZone);
+
 			return new RefreshToken
 			{
 				Token = newRefreshToken,
 				UserId = user.Id,
-				ExpiryDate = DateTime.UtcNow.AddDays(Convert.ToDouble(expiresValue)),
+				ExpiryDate = DateTime.SpecifyKind(currentDateTime.AddDays(Convert.ToDouble(expiresValue)), DateTimeKind.Utc),
 			};
 		}
 	}
