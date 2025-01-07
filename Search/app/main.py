@@ -17,4 +17,4 @@ class BaseMessage(BaseModel):
 async def health_check():
     return BaseMessage(status=200, message="Ok") 
 
-app.include_router(search_router, prefix="")
+app.include_router(search_router, prefix="/search")
