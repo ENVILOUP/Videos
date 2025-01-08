@@ -7,6 +7,8 @@ include:
     - Recommendations/docker-compose.yml
   - path:
     - Search/docker-compose.yml
+  - path:
+    - Authorization/docker-compose.yml
 
 services:
   # proxy
@@ -21,10 +23,12 @@ services:
       - ./Content/fixtures/media:/var/www/media
       - ./Recommendations/nginx/conf.d/recommendations-app.conf:/etc/nginx/conf.d/recommendations-app.conf:ro
       - ./Search/nginx/conf.d/search-app.conf:/etc/nginx/conf.d/search-app.conf:ro
+      - ./Authorization/nginx/conf.d/authorization-app.conf:/etc/nginx/conf.d/authorization-app.conf:ro
     depends_on:
       - content-app
       - recommendations-app
       - search-app
+      - authorization-app
 
   # database and other non application services
   pg:

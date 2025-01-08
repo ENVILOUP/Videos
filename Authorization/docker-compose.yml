@@ -1,0 +1,10 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP.NET Core service.
+services:
+  authorization-app:
+    image: enviloup/authorization:latest
+    build: 
+      context: .
+      dockerfile: ./Dockerfile.production
+    environment:
+      - DATABASE__CONNECTIONSTRING=Host=pg;Port=5432;Database=postgres;Username=postgres;Password=postgres
+      - JWT_KEY=18Z0Vmuq5j99VY0X1xkIVlZ499t3SqHha7siBG29tnb4WAuR
