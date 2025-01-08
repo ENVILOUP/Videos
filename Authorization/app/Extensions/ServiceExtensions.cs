@@ -16,7 +16,6 @@ namespace app
 			services.AddControllers();
 			services.AddScoped<JWTService>();
 			services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connectionString));
-			services.AddScoped<AppDbContext>();
 		}
 
 		public static void ConfigureJwtAuthentication(this IServiceCollection services, IConfiguration configuration)

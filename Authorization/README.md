@@ -18,7 +18,7 @@ Before starting development, ensure that you have the following installed:
    To build the necessary Docker images, run:
 
    ```shell
-   docker-compose build
+   docker compose build
    ```
 
 2. **Run the service in development mode**
@@ -26,13 +26,13 @@ Before starting development, ensure that you have the following installed:
    To start the service and related containers (e.g., the database), run:
 
    ```shell
-   docker-compose up -d
+   docker compose up -d
    ```
 
    This will start the services in the background. If you want to view the logs of the containers, you can run:
 
    ```shell
-   docker-compose logs -f
+   docker compose logs -f
    ```
 3. **Access the Swagger UI**
 

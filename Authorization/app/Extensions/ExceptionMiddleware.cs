@@ -24,7 +24,7 @@ namespace app.Extensions
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError($"Ошибка: {ex.Message}");
+				_logger.LogError($"Error: {ex.Message}");
 				await HandleExceptionAsync(context, ex);
 			}
 		}
@@ -38,7 +38,6 @@ namespace app.Extensions
 			{
 				StatusCode = context.Response.StatusCode,
 				Message = "Server error.",
-				// DetailedMessage = exception.Message // Уберите, если не хотите показывать детали.
 			};
 
 			return context.Response.WriteAsJsonAsync(response);
