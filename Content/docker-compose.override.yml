@@ -1,0 +1,29 @@
+services:
+  content-app:
+    volumes:
+      - ./app:/app/app
+    env_file:
+      - path: .env
+        required: false
+  nginx:
+    image: nginx
+    ports:
+      - "127.0.0.1:80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./fixtures/media:/var/www/media
+  pg:
+    image: postgres:15.8-bullseye
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      PGDATA: /var/lib/postgres/data/pgdata
+    volumes:
+      - contentdb:/var/lib/postgres/data/pgdata
+    ports:
+      - "127.0.0.1:5432:5432"
+    
+volumes:
+  contentdb:

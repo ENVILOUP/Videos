@@ -1,0 +1,7 @@
+services:
+  search-app:
+    image: enviloup/search:latest
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: "--log-level debug"

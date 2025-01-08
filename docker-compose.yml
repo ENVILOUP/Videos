@@ -1,0 +1,46 @@
+name: enviloup_videos
+
+include:
+  - path:
+    - Content/docker-compose.yml
+  - path:
+    - Recommendations/docker-compose.yml
+  - path:
+    - Search/docker-compose.yml
+
+services:
+  # proxy
+  nginx:
+    image: nginx
+    ports:
+      - "127.0.0.1:80:80"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./Content/nginx/conf.d/cdn.enviloup.conf:/etc/nginx/conf.d/cdn.enviloup.conf:ro
+      - ./Content/nginx/conf.d/content-app.conf:/etc/nginx/conf.d/content-app.conf:ro
+      - ./Content/fixtures/media:/var/www/media
+      - ./Recommendations/nginx/conf.d/recommendations-app.conf:/etc/nginx/conf.d/recommendations-app.conf:ro
+      - ./Search/nginx/conf.d/search-app.conf:/etc/nginx/conf.d/search-app.conf:ro
+    depends_on:
+      - content-app
+      - recommendations-app
+      - search-app
+
+  # database and other non application services
+  pg:
+    image: postgres:15.8-bullseye
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      PGDATA: /var/lib/postgres/data/pgdata
+    volumes:
+      - enviloup_pg:/var/lib/postgres/data/pgdata
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  redis:
+    image: redis:7.0.11-bullseye
+
+volumes:
+  enviloup_pg:
