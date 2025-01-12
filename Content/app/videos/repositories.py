@@ -67,13 +67,11 @@ class VideosRespository:
                  created_at,
                  modified_at)
             VALUES
-	            ($1, $2, $3, $4, $5, $6, $7)
+	            ($1, $2, $3, $4, $5)
             ON CONFLICT (video_uuid) DO UPDATE 
             SET
                 title = EXCLUDED.title,
                 description = EXCLUDED.description,
-                video_url = EXCLUDED.video_url,
-                thumbnail_url = EXCLUDED.thumbnail_url,
                 modified_at = NOW()
             WHERE videos.video_uuid = EXCLUDED.video_uuid
             RETURNING videos.video_uuid;
@@ -82,8 +80,6 @@ class VideosRespository:
         args = (video.video_uuid,
                 video.title,
                 video.description,
-                video.video_url,
-                video.thumbnail_url,
                 video.created_at,
                 video.modified_at)
 

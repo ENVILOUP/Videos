@@ -9,6 +9,6 @@ class BaseMessage(BaseModel):
     message: str
 
 
-@router.get("/")
+@router.get("/health-check")
 async def health_check():
     return BaseMessage(status=200, message='Ok')

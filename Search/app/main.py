@@ -13,7 +13,7 @@ class BaseMessage(BaseModel):
     status: int
     message: str
 
-@app.get("/")
+@app.get("/health-check")
 async def health_check():
     return BaseMessage(status=200, message="Ok") 
 
