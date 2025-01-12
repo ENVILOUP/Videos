@@ -1,17 +1,13 @@
+x-services-healthcheck: &services-healthcheck
+  test: ["CMD-SHELL", "curl --silent --fail http://localhost:8080/health-check || exit 1"]
+  interval: 10s
+  retries: 5
+  start_period: 30s
+  timeout: 10s
+
 name: enviloup_videos
 
-include:
-  - path:
-    - Content/docker-compose.yml
-  - path:
-    - Recommendations/docker-compose.yml
-  - path:
-    - Search/docker-compose.yml
-  - path:
-    - Authorization/docker-compose.yml
-
 services:
-  # proxy
   nginx:
     image: nginx
     ports:
@@ -20,31 +16,83 @@ services:
       - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./Content/nginx/conf.d/cdn.enviloup.conf:/etc/nginx/conf.d/cdn.enviloup.conf:ro
       - ./Content/nginx/conf.d/content-app.conf:/etc/nginx/conf.d/content-app.conf:ro
-      - ./Content/fixtures/media:/var/www/media
+      - ./Content/fixtures/media:/var/www/media:ro
       - ./Recommendations/nginx/conf.d/recommendations-app.conf:/etc/nginx/conf.d/recommendations-app.conf:ro
       - ./Search/nginx/conf.d/search-app.conf:/etc/nginx/conf.d/search-app.conf:ro
       - ./Authorization/nginx/conf.d/authorization-app.conf:/etc/nginx/conf.d/authorization-app.conf:ro
     depends_on:
-      - content-app
-      - recommendations-app
-      - search-app
-      - authorization-app
+      content-app:
+        condition: service_healthy
+      recommendations-app:
+        condition: service_healthy
+      search-app:
+        condition: service_healthy
+      authorization-app:
+        condition: service_healthy
 
-  # database and other non application services
   pg:
     image: postgres:15.8-bullseye
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
       PGDATA: /var/lib/postgres/data/pgdata
     volumes:
       - enviloup_pg:/var/lib/postgres/data/pgdata
-    ports:
-      - "127.0.0.1:5432:5432"
+      - ./deploy/postgresql/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql:ro
 
   redis:
     image: redis:7.0.11-bullseye
 
+  authorization-app:
+    image: enviloup/authorization:latest
+    build: 
+      context: ./Authorization
+      dockerfile: Dockerfile.production
+    environment:
+      - DATABASE__CONNECTIONSTRING=Host=pg;Port=5432;Database=authdb;Username=postgres;Password=postgres
+      - JWT_KEY=18Z0Vmuq5j99VY0X1xkIVlZ499t3SqHha7siBG29tnb4WAuR
+    healthcheck:
+      <<: *services-healthcheck
+    depends_on:
+      - pg
+
+  content-app:
+    image: enviloup/content:latest
+    build:
+      context: ./Content
+      dockerfile: Dockerfile
+    command: "--log-level debug"
+    environment:
+      DATABASE: postgres://postgres:postgres@pg:5432/contentdb
+    healthcheck:
+      <<: *services-healthcheck
+    depends_on:
+      - pg
+
+  recommendations-app:
+    image: enviloup/recommendations:latest
+    build:
+      context: ./Recommendations
+      dockerfile: Dockerfile
+    healthcheck:
+      <<: *services-healthcheck
+    depends_on:
+      - redis
+
+  search-app:
+    image: enviloup/search:latest
+    build: 
+      context: ./Search
+      dockerfile: Dockerfile
+    command: "--log-level debug"
+    healthcheck:
+      <<: *services-healthcheck
+
+networks:
+  default:
+    name: enviloup_void_sex_network
+    attachable: true
+
 volumes:
   enviloup_pg:
+    name: enviloup_pg

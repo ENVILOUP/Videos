@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 
 from app.config import config
 from app.videos.views import router as videos_router

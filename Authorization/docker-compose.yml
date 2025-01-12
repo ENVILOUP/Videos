@@ -6,5 +6,11 @@ services:
       context: .
       dockerfile: ./Dockerfile.production
     environment:
-      - DATABASE__CONNECTIONSTRING=Host=pg;Port=5432;Database=postgres;Username=postgres;Password=postgres
+      - DATABASE__CONNECTIONSTRING=Host=pg;Port=5432;Database=authdb;Username=postgres;Password=postgres
       - JWT_KEY=18Z0Vmuq5j99VY0X1xkIVlZ499t3SqHha7siBG29tnb4WAuR
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail http://localhost:8080/health || exit 1"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s

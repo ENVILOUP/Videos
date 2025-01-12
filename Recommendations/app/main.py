@@ -18,7 +18,7 @@ app = FastAPI(
 )
 
 
-@app.get("/")
+@app.get("/health-check")
 async def health_check(redis: Annotated[aioredis.Redis, Depends(get_redis)]):
     return BaseMessage(status=200, message='Ok')
 

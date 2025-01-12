@@ -30,7 +30,7 @@ namespace app
 
 		public static void MapCustomHealthChecks(this IEndpointRouteBuilder endpoints)
 		{
-			endpoints.MapHealthChecks("/health", new HealthCheckOptions
+			endpoints.MapHealthChecks("/health-check", new HealthCheckOptions
 			{
 				ResponseWriter = async (context, report) =>
 				{
