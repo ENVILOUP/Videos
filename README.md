@@ -22,7 +22,7 @@ Streaming media service like YouTube
 To start backend use:
 
 ```shell
-docker compose up -d
+docker compose -f docker-compose.yml up -d
 ```
 
 If you run first time then you must run with `--build` argument
@@ -30,3 +30,9 @@ If you run first time then you must run with `--build` argument
 # Development
 
 To develop a specific service, you can read the instructions from the README in the folder.
+
+To start backend in development mode use:
+
+```shell
+docker compose up -d
+```
