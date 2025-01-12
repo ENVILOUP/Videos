@@ -1,6 +1,0 @@
-services:
-  recommendations-app:
-    image: enviloup/recommendations:latest
-    build:
-      context: .
-      dockerfile: Dockerfile

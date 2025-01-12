@@ -1,7 +1,0 @@
-services:
-  content-app:
-    image: enviloup/content:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: "--log-level debug"
