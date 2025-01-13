@@ -19,4 +19,4 @@ COPY ./migrations /app/migrations/
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "yoyo apply --batch --database $DATABASE_CONNECTION_URL /app/migrations && uvicorn app.main:app --host 0.0.0.0 --port 8080"]
+ENTRYPOINT ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

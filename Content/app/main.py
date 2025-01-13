@@ -1,12 +1,20 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.config import config
 from app.videos.views import router as videos_router
 from app.views import router as root_router
+from app.migrations import apply_migrations
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    apply_migrations()
+    yield
 
 app = FastAPI(
     title='Content Service',
+    lifespan=lifespan, 
     debug=config.debug
 )
 

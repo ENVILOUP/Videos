@@ -61,7 +61,7 @@ services:
     build:
       context: ./Content
       dockerfile: Dockerfile
-    command: "--log-level debug"
+    command: "--log-level info"
     environment:
       DATABASE: postgres://postgres:postgres@pg:5432/contentdb
     healthcheck:
@@ -96,3 +96,5 @@ networks:
 volumes:
   enviloup_pg:
     name: enviloup_pg
+  esdata:
+    name: enviloup_esdata
