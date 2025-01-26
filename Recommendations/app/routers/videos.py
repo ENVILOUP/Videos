@@ -19,7 +19,7 @@ async def get_videos(user: str, redis: Annotated[aioredis.Redis, Depends(get_red
         videos = await get_recommendations_for_videos()
         await redis.rpush(redis_key, *videos)
         await redis.expire(redis_key, redis_expire)
-
-    videos = list(map(str, videos))
+    else:
+        videos = list(map(lambda b: b, videos))
 
     return {'videos': videos}
