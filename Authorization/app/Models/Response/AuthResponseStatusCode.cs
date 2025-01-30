@@ -2,31 +2,31 @@ namespace app.Models.Response
 {
 	public enum AuthResponseStatusCode
 	{
-		// ✅ Успешные операции
+		// ✅ Successful operations 
 		Ok = 2000,
-		Registered = 2100,        // Пользователь успешно зарегистрирован
-		LoggedIn = 2101,          // Успешный вход в систему
-		TokenRefreshed = 2102,    // Токен успешно обновлён
-		TokenRevoked = 2103,      // Токен успешно отозван
-		LoggedOut = 2104,         // Успешный выход из системы
+		Registered = 2100,
+		LoggedIn = 2101,
+		TokenRefreshed = 2102, 
+		TokenRevoked = 2103,
+		LoggedOut = 2104,
 
-		// ⚠️ Ошибки валидации
-		RegisterNotValidData = 4000,    // Ошибка валидации данных регистрации
-		LoginNotValidData = 4001,       // Ошибка валидации данных входа
-		RefreshTokenNotValidData = 4002,// Ошибка валидации данных обновления токена
-		RevokeTokenNotValidData = 4003, // Ошибка валидации данных отзыва токена
+		// ⚠️ Validation errors
+		RegisterNotValidData = 4000,
+		LoginNotValidData = 4001,
+		RefreshTokenNotValidData = 4002,
+		RevokeTokenNotValidData = 4003,
 
-		// ❌ Ошибки аутентификации и авторизации
-		RegistrationFailed = 4100,  // Ошибка регистрации
-		UserNotFound = 4101,        // Пользователь не найден
-		LoginNotMatchPassword = 4102, // Неверный пароль
-		RefreshTokenNotFound = 4103, // Токен не найден
-		InvalidToken = 4104,        // Недействительный токен
-		TokenExpired = 4105,        // Истёк срок действия токена
-		TokenRevokeFailed = 4106,   // Ошибка отзыва токена
-		TokenAlreadyRevoked = 4107, // Токен уже отозван
+		// ❌ Authentication and authorization errors
+		RegistrationFailed = 4100,
+		UserNotFound = 4101,
+		LoginNotMatchPassword = 4102,
+		RefreshTokenNotFound = 4103,
+		InvalidToken = 4104,
+		TokenExpired = 4105,
+		TokenRevokeFailed = 4106,
+		TokenAlreadyRevoked = 4107,
 
-		// 🔥 Внутренние ошибки сервера
-		ServerError = 5000          // Внутренняя ошибка сервера
+		// 🔥 Server errors
+		ServerError = 5000 
 	}
 }
