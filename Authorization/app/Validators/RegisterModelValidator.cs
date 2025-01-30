@@ -11,9 +11,9 @@ namespace app.Validators
     {
         public RegisterModelValidator()
         {
-            RuleFor(registerModel => registerModel.Username).NotEmpty().MinimumLength(2);
+            RuleFor(registerModel => registerModel.Username).NotEmpty().MinimumLength(4);
 
-            RuleFor(registerModel => registerModel.Password).NotEmpty().MinimumLength(3);
+            RuleFor(registerModel => registerModel.Password).NotEmpty().MinimumLength(12);
 
             RuleFor(registerModel => registerModel.Email).NotEmpty().EmailAddress();
         }

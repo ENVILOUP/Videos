@@ -11,9 +11,9 @@ namespace app.Validators
 	{
 		public LoginModelValidator()
 		{
-			RuleFor(loginModel => loginModel.Username).NotEmpty().MinimumLength(2);
+			RuleFor(loginModel => loginModel.Username).NotEmpty().MinimumLength(4);
 
-			RuleFor(loginModel => loginModel.Password).NotEmpty().MinimumLength(3);
+			RuleFor(loginModel => loginModel.Password).NotEmpty().MinimumLength(12);
 		}
     }
 }
