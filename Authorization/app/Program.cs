@@ -14,6 +14,7 @@ if (string.IsNullOrEmpty(connectionString))
 }
 
 builder.Services.AddCustomServices(connectionString);
+builder.Services.AddValidators();
 builder.Services.ConfigureHealthChecks(connectionString);
 builder.Services.ConfigureSwagger();
 builder.Services.ConfigureIdentity();

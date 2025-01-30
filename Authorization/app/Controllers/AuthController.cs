@@ -5,8 +5,11 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using app.Models;
+using app.Models.Response;
 using app.Services;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,20 +18,35 @@ namespace app.Controllers
 {
 	[ApiController]
 	[Route("api/[controller]")]
-	public class AuthController([FromServices] UserManager<IdentityUser> userManager, [FromServices] JWTService jwtService, [FromServices] AppDbContext dbContext, ILogger<AuthController> logger, [FromServices] IConfiguration configuration) : ControllerBase
+	public class AuthController(
+		[FromServices] UserManager<IdentityUser> userManager,
+		[FromServices] JWTService jwtService,
+		[FromServices] AppDbContext dbContext,
+		ILogger<AuthController> logger,
+		[FromServices] IConfiguration configuration,
+		[FromServices] IValidator<RegisterModel> registerModelValidator,
+		[FromServices] IValidator<LoginModel> loginModelValidator,
+		[FromServices] IValidator<RefreshTokenModel> refreshTokenModelValidator,
+		[FromServices] IValidator<RevokeTokenModel> revokeTokenModelValidator
+		) : ControllerBase
 	{
 		private readonly UserManager<IdentityUser> _userManager = userManager;
 		private readonly JWTService _jwtService = jwtService;
 		private readonly AppDbContext _dbContext = dbContext;
 		private readonly ILogger<AuthController> _logger = logger;
 		private readonly IConfiguration _configuration = configuration;
+		private readonly IValidator<RegisterModel> _registerModelValidator = registerModelValidator;
+		private readonly IValidator<LoginModel> _loginModelValidator = loginModelValidator;
+		private readonly IValidator<RefreshTokenModel> _refreshTokenModelValidator = refreshTokenModelValidator;
+		private readonly IValidator<RevokeTokenModel> _revokeTokenModelValidator = revokeTokenModelValidator;
 
 		[HttpPost("register")]
 		public async Task<IActionResult> Register([FromBody] RegisterModel model)
 		{
-			if (!ModelState.IsValid)
+			var validationResult = await _registerModelValidator.ValidateAsync(model);
+			if (!validationResult.IsValid)
 			{
-				return BadRequest(ModelState);
+				return ResponseHelper.Error(AuthResponseStatusCode.RegisterNotValidData);
 			}
 
 			var user = new IdentityUser { UserName = model.Username, Email = model.Email };
@@ -36,30 +54,31 @@ namespace app.Controllers
 
 			if (!result.Succeeded)
 			{
-				return BadRequest(result.Errors);
+				return ResponseHelper.Error(AuthResponseStatusCode.RegistrationFailed);
 			}
 
-			return Ok();
+			return ResponseHelper.Ok(user.Id, AuthResponseStatusCode.Registered);
 		}
 
 		[HttpPost("login")]
 		public async Task<IActionResult> Login([FromBody] LoginModel model)
 		{
-			if (!ModelState.IsValid)
+			var validationResult = await _loginModelValidator.ValidateAsync(model);
+			if (!validationResult.IsValid)
 			{
-				return BadRequest(ModelState);
+				return ResponseHelper.Error(AuthResponseStatusCode.LoginNotValidData);
 			}
 
 			var user = await _userManager.FindByNameAsync(model.Username);
 
 			if (user == null)
 			{
-				return Unauthorized(new { message = "User not found" });
+				return ResponseHelper.Error(AuthResponseStatusCode.UserNotFound);
 			}
 
 			if (!await _userManager.CheckPasswordAsync(user, model.Password))
 			{
-				return Unauthorized(new { message = "Invalid password" });
+				return ResponseHelper.Error(AuthResponseStatusCode.LoginNotMatchPassword);
 			}
 
 			var accessToken = _jwtService.GenerateJwtToken(user);
@@ -70,22 +89,23 @@ namespace app.Controllers
 			await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity);
 			await _dbContext.SaveChangesAsync();
 
-			return Ok(new { AccessToken = accessToken, RefreshToken = refreshToken });
+			return ResponseHelper.Ok(new { AccessToken = accessToken, RefreshToken = refreshToken }, AuthResponseStatusCode.LoggedIn);
 		}
 
 		[HttpPost("refresh-token")]
 		public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenModel model)
 		{
-			if (!ModelState.IsValid)
+			var validationResult = await _refreshTokenModelValidator.ValidateAsync(model);
+			if (!validationResult.IsValid)
 			{
-				return BadRequest(ModelState);
+				return ResponseHelper.Error(AuthResponseStatusCode.RefreshTokenNotValidData);
 			}
 
 			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(refreshToken => refreshToken.Token == model.RefreshToken);
 
 			if (refreshToken == null)
 			{
-				return Unauthorized(new { message = "Invalid refresh token" });
+				return ResponseHelper.Error(AuthResponseStatusCode.RefreshTokenNotFound);
 			}
 
 			const int WINDOW_TIME_HOURS = 1;
@@ -93,13 +113,13 @@ namespace app.Controllers
 
 			if (tokenExpiryWithWindow <= DateTime.UtcNow || refreshToken.IsRevoked || refreshToken.IsUsed)
 			{
-				return Unauthorized(new { message = "Invalid or expired refresh token" });
+				return ResponseHelper.Error(AuthResponseStatusCode.InvalidToken);
 			}
 
 			var user = await _userManager.FindByIdAsync(refreshToken.UserId);
 			if (user == null)
 			{
-				return Unauthorized(new { message = "User not found" });
+				return ResponseHelper.Error(AuthResponseStatusCode.UserNotFound);
 			}
 
 			var newAccessToken = _jwtService.GenerateJwtToken(user);
@@ -120,27 +140,28 @@ namespace app.Controllers
 				await transaction.CommitAsync();
 			}
 
-			return Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken });
+			return ResponseHelper.Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken }, AuthResponseStatusCode.TokenRefreshed);
 		}
 
 		[HttpPost("revoke-token")]
 		public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenModel model)
 		{
-			if (!ModelState.IsValid)
+			var validationResult = await _revokeTokenModelValidator.ValidateAsync(model);
+			if (!validationResult.IsValid)
 			{
-				return BadRequest(ModelState);
+				return ResponseHelper.Error(AuthResponseStatusCode.RevokeTokenNotValidData);
 			}
 
 			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(refreshToken => refreshToken.Token == model.RefreshToken);
 
 			if (refreshToken == null)
 			{
-				return BadRequest(new { message = "Invalid refresh token" });
+				return ResponseHelper.Error(AuthResponseStatusCode.RefreshTokenNotFound);
 			}
 
 			if (refreshToken.IsRevoked)
 			{
-				return BadRequest(new { message = "Refresh token has already been revoked" });
+				return ResponseHelper.Error(AuthResponseStatusCode.TokenAlreadyRevoked);
 			}
 
 			refreshToken.IsRevoked = true;
@@ -148,7 +169,7 @@ namespace app.Controllers
 			_dbContext.RefreshTokens.Update(refreshToken);
 			await _dbContext.SaveChangesAsync();
 
-			return Ok(new { message = "Refresh token revoked successfully" });
+			return ResponseHelper.Ok(refreshToken.Id, AuthResponseStatusCode.TokenRevoked);
 		}
 
 		[Authorize]
@@ -158,7 +179,7 @@ namespace app.Controllers
 			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 			if (userId == null)
 			{
-				return BadRequest(new { message = "User not found" });
+				return ResponseHelper.Error(AuthResponseStatusCode.UserNotFound);
 			}
 
 			var tokens = _dbContext.RefreshTokens.Where(refreshToken => refreshToken.UserId == userId).ToList();
@@ -168,7 +189,7 @@ namespace app.Controllers
 
 			await _dbContext.SaveChangesAsync();
 
-			return Ok(new { message = "Logout successful" });
+			return ResponseHelper.Ok(userId, AuthResponseStatusCode.LoggedOut);
 		}
 
 		private RefreshToken GetNewRefreshToken(IdentityUser user, string newRefreshToken)
