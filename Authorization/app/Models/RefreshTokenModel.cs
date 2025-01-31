@@ -8,7 +8,6 @@ namespace app.Models
 {
     public class RefreshTokenModel
     {
-		[Required]
         public required string RefreshToken { get; set; }
     }
 }

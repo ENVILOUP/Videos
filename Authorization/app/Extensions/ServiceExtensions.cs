@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using FluentValidation;
+using app.Validators;
 namespace app
 {
 	public static class ServiceExtensions
@@ -76,9 +78,9 @@ namespace app
 		{
 			services.AddIdentity<IdentityUser, IdentityRole>(opt =>
 			{
-				opt.Password.RequireDigit = false;
-				opt.Password.RequiredLength = 3;
-				opt.Password.RequireLowercase = false;
+				opt.Password.RequiredLength = 12;
+				opt.Password.RequireDigit = true;
+				opt.Password.RequireLowercase = true;
 				opt.Password.RequireUppercase = false;
 				opt.Password.RequireNonAlphanumeric = false;
 				opt.User.RequireUniqueEmail = true;
@@ -91,6 +93,14 @@ namespace app
 		{
 			services.AddHealthChecks()
 				.AddNpgSql(connectionString);
+		}
+
+		public static void AddValidators(this IServiceCollection services)
+		{
+			services.AddScoped<IValidator<RegisterModel>, RegisterModelValidator>();
+			services.AddScoped<IValidator<LoginModel>, LoginModelValidator>();
+			services.AddScoped<IValidator<RefreshTokenModel>, RefreshTokenModelValidator>();
+			services.AddScoped<IValidator<RevokeTokenModel>, RevokeTokenModelValidator>();
 		}
 	}
 }
