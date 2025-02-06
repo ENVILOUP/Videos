@@ -42,7 +42,8 @@ jobs:
   trigger-authorization:
     needs: detect-changes
     if: needs.detect-changes.outputs.authorization == 'true'
-    uses: ./.github/workflows/service-authorization.yml
+    # uses: ./.github/workflows/service-authorization.yml
+    uses: enviloup/videos/.github/workflows/service-authorization.yml@feature/dev-37
 
   trigger-content:
     needs: detect-changes
