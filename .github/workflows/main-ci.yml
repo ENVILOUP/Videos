@@ -1,0 +1,57 @@
+name: Detect and Trigger Service Builds
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+
+    # Change this
+    outputs:
+      authorization: ${{ steps.filter.outputs.Authorization }}
+      content: ${{ steps.filter.outputs.Content }}
+      recommendations: ${{ steps.filter.outputs.Recommendations }}
+      search: ${{ steps.filter.outputs.Search }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          # Change this
+          filters: |
+            Authorization:
+              - 'Authorization/**'
+            Content:
+              - 'Content/**'
+            Recommendations:
+              - 'Recommendations/**'
+            Search:
+              - 'Search/**'
+
+  # Change this and add new service workflows
+  trigger-authorization:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.authorization == 'true'
+    uses: ./.github/workflows/service-authorization.yml
+
+  trigger-content:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.content == 'true'
+    uses: ./.github/workflows/service-content.yml
+
+  trigger-recommendations:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.recommendations == 'true'
+    uses: ./.github/workflows/service-recommendations.yml
+
+  trigger-search:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.search == 'true'
+    uses: ./.github/workflows/service-search.yml
