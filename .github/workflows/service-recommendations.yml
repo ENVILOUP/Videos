@@ -11,7 +11,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  SERVICE_NAME: recommendations
+  SERVICE_NAME: Recommendations
 
 jobs:
   build-and-push:

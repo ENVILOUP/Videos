@@ -11,7 +11,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  SERVICE_NAME: authorization
+  SERVICE_NAME: Authorization
 
 jobs:
   build-and-push:

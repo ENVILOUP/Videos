@@ -11,7 +11,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  SERVICE_NAME: search
+  SERVICE_NAME: Search
 
 jobs:
   build-and-push:
