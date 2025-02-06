@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - feature/dev-37 
 
 jobs:
   detect-changes:
