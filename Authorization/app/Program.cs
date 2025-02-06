@@ -18,7 +18,7 @@ builder.Services.AddValidators();
 builder.Services.ConfigureHealthChecks(connectionString);
 builder.Services.ConfigureSwagger();
 builder.Services.ConfigureIdentity();
-builder.Services.ConfigureJwtAuthentication(builder.Configuration);
+builder.Services.ConfigureJwtAuthentication(builder.Configuration); ;
 
 var app = builder.Build();
 

@@ -12,7 +12,6 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
 
-    # Change this
     outputs:
       authorization: ${{ steps.filter.outputs.Authorization }}
       content: ${{ steps.filter.outputs.Content }}
@@ -27,7 +26,6 @@ jobs:
         id: filter
         uses: dorny/paths-filter@v3
         with:
-          # Change this
           filters: |
             Authorization:
               - 'Authorization/**'
@@ -38,12 +36,10 @@ jobs:
             Search:
               - 'Search/**'
 
-  # Change this and add new service workflows
   trigger-authorization:
     needs: detect-changes
     if: needs.detect-changes.outputs.authorization == 'true'
-    # uses: ./.github/workflows/service-authorization.yml
-    uses: enviloup/videos/.github/workflows/service-authorization.yml@feature/dev-37
+    uses: ./.github/workflows/service-authorization.yml
 
   trigger-content:
     needs: detect-changes
