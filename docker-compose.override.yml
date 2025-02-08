@@ -29,3 +29,9 @@ services:
     environment:
       - WATCHFILES_FORCE_POLLING=true
     entrypoint: "uvicorn app.main:app --host 0.0.0.0 --port 8080 --log-level debug --reload --reload-dir /app/"
+
+  profile-app:
+    volumes:
+      - ./Profile/app:/app/app
+    command: "--log-level debug --reload --reload-dir /app/"
+

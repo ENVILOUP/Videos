@@ -1,19 +1,34 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from app.profile.repositories import ProfileRepository
+from app.profile.models import UserProfile
+
+from typing import Annotated
+
+from asyncpg import Connection
+from app.dependencies import get_connection
 
 router = APIRouter()
 
 @router.post("/")
-def create_profile(name: str):
-    return "Ok"
+async def create_profile(profile: UserProfile, db: Annotated[Connection, Depends(get_connection)]):
+    async with db as conn:
+        uuid = ProfileRepository.add_profile(conn, profile)
+        return uuid
 
 @router.get("/{profile_uuid}")
-def get_profile(profile_uuid: str):
-    return "Ok"
+async def get_profile(profile_uuid: str, db: Annotated[Connection, Depends(get_connection)]):
+    async with db as conn:
+        profile = ProfileRepository.get_profile(conn, profile_uuid)
+        return profile
 
 @router.put("/{profile_uuid}")
-def update_profile(profile_uuid: str, name: str):
-    return "Ok"
+async def update_profile(profile: UserProfile, db: Annotated[Connection, Depends(get_connection)]):
+    async with db as conn:
+        uuid = ProfileRepository.update_profile(conn, profile)
+        return uuid
 
 @router.delete("/{profile_uuid}")
-def delete_profile(profile_uuid: str):
-    return "Ok"
+async def delete_profile(profile_uuid: str, db: Annotated[Connection, Depends(get_connection)]):
+    async with db as conn:
+        uuid = ProfileRepository.delete_profile(conn, profile_uuid)
+        return uuid

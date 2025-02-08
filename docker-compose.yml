@@ -20,6 +20,7 @@ services:
       - ./Recommendations/nginx/conf.d/recommendations-app.conf:/etc/nginx/conf.d/recommendations-app.conf:ro
       - ./Search/nginx/conf.d/search-app.conf:/etc/nginx/conf.d/search-app.conf:ro
       - ./Authorization/nginx/conf.d/authorization-app.conf:/etc/nginx/conf.d/authorization-app.conf:ro
+      - ./Profile/nginx/conf.d/profile-app.conf:/etc/nginx/conf.d/profile-app.conf:ro
     depends_on:
       content-app:
         condition: service_healthy
@@ -28,6 +29,8 @@ services:
       search-app:
         condition: service_healthy
       authorization-app:
+        condition: service_healthy
+      profile-app:
         condition: service_healthy
 
   pg:
@@ -87,6 +90,19 @@ services:
     command: "--log-level debug"
     healthcheck:
       <<: *services-healthcheck
+  
+  profile-app:
+    image: enviloup/profile:latest
+    build:
+      context: ./Profile
+      dockerfile: Dockerfile
+    command: "--log-level debug"
+    environment:
+      DATABASE: postgres://postgres:postgres@pg:5432/profiledb
+    healthcheck:
+      <<: *services-healthcheck
+    depends_on:
+      - pg
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0

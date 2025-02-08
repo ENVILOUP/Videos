@@ -1,9 +1,10 @@
 from uuid import UUID
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from dataclasses import dataclass
 
-class UserProfile(BaseModel):
+@dataclass
+class UserProfile:
     profile_uuid: UUID
     user_id: UUID
     name: str

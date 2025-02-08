@@ -5,7 +5,7 @@ from datetime import datetime
 
 class Channel(BaseModel):
     channel_uuid: UUID
-    owner_id: UUID
+    owner_uuid: UUID
     name: str
     created: Optional[datetime] = datetime.now()
     updated: Optional[datetime] = datetime.now()
