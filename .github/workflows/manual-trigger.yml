@@ -1,15 +1,20 @@
-name: Manual Trigger
+name: Manual Trigger for Build & Push
 
 on:
   workflow_dispatch:
 
 jobs:
-  trigger-main:
+  trigger-service-builds:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Main Workflow
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: main-ci.yml
-          repo: ${{ github.repository }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trigger Authorization Service Build
+        uses: ./.github/workflows/service-authorization.yml
+
+      - name: Trigger Content Service Build
+        uses: ./.github/workflows/service-content.yml
+
+      - name: Trigger Recommendations Service Build
+        uses: ./.github/workflows/service-recommendations.yml
+
+      - name: Trigger Search Service Build
+        uses: ./.github/workflows/service-search.yml

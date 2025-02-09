@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch: 
 
 jobs:
   detect-changes:
@@ -36,20 +35,20 @@ jobs:
 
   trigger-authorization:
     needs: detect-changes
-    if: needs.detect-changes.outputs.authorization == 'true' || github.event_name == 'workflow_dispatch'
+    if: needs.detect-changes.outputs.authorization == 'true'
     uses: ./.github/workflows/service-authorization.yml
 
   trigger-content:
     needs: detect-changes
-    if: needs.detect-changes.outputs.content == 'true' || github.event_name == 'workflow_dispatch'
+    if: needs.detect-changes.outputs.content == 'true'
     uses: ./.github/workflows/service-content.yml
 
   trigger-recommendations:
     needs: detect-changes
-    if: needs.detect-changes.outputs.recommendations == 'true' || github.event_name == 'workflow_dispatch'
+    if: needs.detect-changes.outputs.recommendations == 'true'
     uses: ./.github/workflows/service-recommendations.yml
 
   trigger-search:
     needs: detect-changes
-    if: needs.detect-changes.outputs.search == 'true' || github.event_name == 'workflow_dispatch'
+    if: needs.detect-changes.outputs.search == 'true'
     uses: ./.github/workflows/service-search.yml
