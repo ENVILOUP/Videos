@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV POETRY_VIRTUALENVS_CREATE=false
 
-ENV DATABASE_CONNECTION_URL=postgresql://postgres:postgres@pg/contentdb
+ENV DATABASE_CONNECTION_URL=postgresql://postgres:postgres@pg/profiledb
 
 COPY ./pyproject.toml poetry.lock /app/
 

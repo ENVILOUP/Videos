@@ -14,6 +14,8 @@ def getenv_bool(key: str, default: bool) -> bool:
 @dataclass(frozen=True)
 class Config:
     debug: bool = getenv_bool('DEBUG', True)
-    database: str = getenv('DATABASE', 'postgres://postgres:postgres@pg:5432/profiledb')
+    database: str = getenv(
+        'DATABASE', 'postgres://postgres:postgres@pg:5432/profiledb')
+
 
 config = Config()

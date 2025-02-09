@@ -12,6 +12,8 @@ fastapi = "^0.115.5"
 uvicorn = "^0.32.1"
 asyncpg = "^0.30.0"
 yoyo-migrations = "^9.0.0"
+psycopg2-binary = "^2.9.10"
+pyjwt = "^2.10.1"
 
 
 [build-system]
