@@ -11,4 +11,5 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: main-ci.yml
+          repo: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
