@@ -18,6 +18,7 @@ namespace app
 			services.AddControllers();
 			services.AddScoped<JWTService>();
 			services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connectionString));
+			services.AddDefaultCors();
 		}
 
 		public static void ConfigureJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
@@ -101,6 +102,19 @@ namespace app
 			services.AddScoped<IValidator<LoginModel>, LoginModelValidator>();
 			services.AddScoped<IValidator<RefreshTokenModel>, RefreshTokenModelValidator>();
 			services.AddScoped<IValidator<RevokeTokenModel>, RevokeTokenModelValidator>();
+		}
+
+		public static void AddDefaultCors(this IServiceCollection services)
+		{
+			services.AddCors(opt =>
+			{
+				opt.AddDefaultPolicy(builder =>
+				{
+					builder.AllowAnyOrigin();
+					builder.AllowAnyMethod();
+					builder.AllowAnyHeader();
+				});
+			});
 		}
 	}
 }

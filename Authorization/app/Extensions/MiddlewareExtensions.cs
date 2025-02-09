@@ -90,6 +90,7 @@ namespace app
 			app.UseRouting(); // Настраиваем маршрутизацию
 			app.UseAuthentication(); // Аутентификация
 			app.UseAuthorization();  // Авторизация
+			app.UseCors(); // CORS
 			app.UseEndpoints(endpoints =>
 			{
 				endpoints.MapGet("/", () => "pong");
