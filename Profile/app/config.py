@@ -16,6 +16,7 @@ class Config:
     debug: bool = getenv_bool('DEBUG', True)
     database: str = getenv(
         'DATABASE', 'postgres://postgres:postgres@pg:5432/profiledb')
+    jwt_key: str = getenv('JWT_KEY', '18Z0Vmuq5j99VY0X1xkIVlZ499t3SqHha7siBG29tnb4WAuR')
 
 
 config = Config()

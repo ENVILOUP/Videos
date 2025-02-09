@@ -35,4 +35,4 @@ class BaseMessage(BaseModel):
 
 
 app.include_router(root_router, prefix="")
-app.include_router(profile_router, prefix="/profile")
+app.include_router(profile_router, prefix="/profiles")

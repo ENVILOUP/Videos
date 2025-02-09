@@ -11,7 +11,7 @@ steps = [
         CREATE TABLE user_profiles (
             id SERIAL PRIMARY KEY,
             profile_uuid UUID NOT NULL UNIQUE,
-            user_uuid UUID NOT NULL,
+            user_uuid UUID NOT NULL UNIQUE,
             name TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

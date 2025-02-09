@@ -21,11 +21,7 @@ class ProfileRepository:
                  updated_at)
             VALUES
                 ($1, $2, $3, $4, $5)
-            ON CONFLICT (profile_uuid) DO UPDATE SET
-                user_uuid = EXCLUDED.user_uuid,
-                name = EXCLUDED.name,
-                updated_at = EXCLUDED.updated_at
-            WHERE user_profiles.profile_uuid = EXCLUDED.profile_uuid
+            ON CONFLICT DO NOTHING 
             RETURNING profile_uuid;
         """
 
@@ -47,7 +43,7 @@ class ProfileRepository:
         query = """
             SELECT
                 profile_uuid,
-                user_id,
+                user_uuid,
                 name,
                 created_at,
                 updated_at
@@ -69,7 +65,7 @@ class ProfileRepository:
         query = """
             UPDATE user_profiles
             SET
-                user_id = $1,
+                user_uuid = $1,
                 name = $2,
                 updated_at = $3
             WHERE profile_uuid = $4;
@@ -85,7 +81,7 @@ class ProfileRepository:
         if not result:
             return None
 
-        return result.get('profile_uuid')
+        return profile.profile_uuid 
 
     @staticmethod
     async def delete_profile(conn: Connection, uuid: UUID) -> Optional[UUID]:
@@ -94,7 +90,7 @@ class ProfileRepository:
             UPDATE user_profiles
             SET
                 deleted = true
-            WHERE profile_uuid = $4;
+            WHERE profile_uuid = $1;
         """
 
         result = await conn.execute(query, uuid)
@@ -102,7 +98,7 @@ class ProfileRepository:
         if not result:
             return None
 
-        return result.get('profile_uuid')
+        return uuid 
 
 
 class ChannelRepository:
@@ -120,11 +116,7 @@ class ChannelRepository:
                  updated_at)
             VALUES
                 ($1, $2, $3, $4, $5)
-            ON CONFLICT (channel_uuid) DO UPDATE SET
-                owner_uuid = EXCLUDED.owner_uuid,
-                name = EXCLUDED.name,
-                updated_at = EXCLUDED.updated_at
-            WHERE channels.channel_uuid = EXCLUDED.channel_uuid
+            ON CONFLICT DO NOTHING 
             RETURNING channel_uuid;
         """
 
@@ -184,10 +176,10 @@ class ChannelRepository:
     @staticmethod
     async def delete_channel(conn: Connection, uuid: UUID) -> Optional[UUID]:
         query = """
-            UPDATE user_profiles
+            UPDATE channels 
             SET
                 deleted = true
-            WHERE profile_uuid = $4;
+            WHERE channel_uuid = $1;
         """
 
         result = await conn.execute(query, uuid)
@@ -195,7 +187,7 @@ class ChannelRepository:
         if not result:
             return None
 
-        return result.get('channel_uuid')
+        return uuid 
 
     @staticmethod
     async def update_channel(conn: Connection, channel: Channel) -> Optional[UUID]:
@@ -216,4 +208,4 @@ class ChannelRepository:
         if not result:
             return None
 
-        return result.get('channel_uuid')
+        return channel.channel_uuid 

@@ -33,5 +33,6 @@ services:
   profile-app:
     volumes:
       - ./Profile/app:/app/app
+      - ./Profile/migrations:/app/migrations
     command: "--log-level debug --reload --reload-dir /app/"
 
