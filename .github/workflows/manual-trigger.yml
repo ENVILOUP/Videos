@@ -1,0 +1,14 @@
+name: Manual Trigger
+
+on:
+  workflow_dispatch:
+
+jobs:
+  trigger-main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Main Workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: main-ci.yml
+          token: ${{ secrets.GITHUB_TOKEN }}
