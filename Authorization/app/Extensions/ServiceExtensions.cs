@@ -41,6 +41,7 @@ namespace app
 					ValidAudience = configuration["JWT:Audience"],
 					IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(key))
 				};
+				opt.MapInboundClaims = false;
 			});
 		}
 
