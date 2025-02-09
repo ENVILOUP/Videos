@@ -4,17 +4,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  trigger-service-builds:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Authorization Service Build
-        uses: ./.github/workflows/service-authorization.yml
+  trigger-authorization:
+    uses: ./.github/workflows/service-authorization.yml
 
-      - name: Trigger Content Service Build
-        uses: ./.github/workflows/service-content.yml
+  trigger-content:
+    uses: ./.github/workflows/service-content.yml
 
-      - name: Trigger Recommendations Service Build
-        uses: ./.github/workflows/service-recommendations.yml
+  trigger-recommendations:
+    uses: ./.github/workflows/service-recommendations.yml
 
-      - name: Trigger Search Service Build
-        uses: ./.github/workflows/service-search.yml
+  trigger-search:
+    uses: ./.github/workflows/service-search.yml
