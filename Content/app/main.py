@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
+from app.utils import try_init_debezium
 from app.config import config
 from app.videos.views import router as videos_router
 from app.views import router as root_router
@@ -10,6 +11,7 @@ from app.migrations import apply_migrations
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     apply_migrations()
+    await try_init_debezium()
     yield
 
 app = FastAPI(
