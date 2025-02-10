@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "profile"
-version = "0.1.0"
-description = ""
+version = "1.0.0"
+description = "Provides operations with user profiles and channels"
 authors = ["justTrueCodeWriter <dmjustcoder8@gmail.com>"]
 readme = "README.md"
 package-mode = false
