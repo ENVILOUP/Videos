@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -176,7 +177,7 @@ namespace app.Controllers
 		[HttpPost("logout")]
 		public async Task<IActionResult> Logout()
 		{
-			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+			var userId = User.FindFirstValue(JwtRegisteredClaimNames.Sub);
 			if (userId == null)
 			{
 				return ResponseHelper.Error(AuthResponseStatusCode.UserNotFound);

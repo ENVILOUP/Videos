@@ -22,10 +22,9 @@ namespace app.Services
 			var jtiId = Guid.NewGuid().ToString();
 			var claims = new[]
 			{
-				new Claim(ClaimTypes.NameIdentifier, user.Id),
 				new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+				new Claim("role", "user"),
 				new Claim(JwtRegisteredClaimNames.Jti, jtiId),
-				new Claim(ClaimTypes.Name, user.UserName ?? throw new InvalidOperationException("Username not found")),
 			};
 
 			string jwtKey = _configuration["JWT_KEY"] ?? throw new InvalidOperationException("JWT_Key not found");
