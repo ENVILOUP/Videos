@@ -16,7 +16,7 @@ class Config:
     debug: bool = getenv_bool('DEBUG', True)
     database: str = getenv('DATABASE', 'postgres://postgres:postgres@pg:5432/contentdb')
     cdn_base_url: str = getenv('CDN_BASE_URL', 'http://cdn.enviloup.localhost')   
-    debezium_url: str = getenv('DEBEZIUM_CONNECTOR_URL', 'http://debezium:8083/connectors')  
+    kafka_connect_url: str = getenv('KAFKA_CONNECT_URL', 'http://cdc:8083/connectors')  
 
 
 config = Config()

@@ -130,37 +130,49 @@ services:
     ports:
       - "127.0.0.1:8081:8081"
 
-  debezium:
-    image: debezium/connect:1.9.7.Final
+  cdc:
+    build:
+      context: ./deploy/CDC
+      dockerfile: Dockerfile
     restart: always
     depends_on:
       - schema-registry
+      - kafka
     environment:
-      BOOTSTRAP_SERVERS: "kafka:29092"
-      GROUP_ID: "debezium"
-      CONFIG_STORAGE_TOPIC: "debezium_configs"
-      OFFSET_STORAGE_TOPIC: "debezium_offsets"
-      STATUS_STORAGE_TOPIC: "debezium_statuses"
-      CONFIG_STORAGE_REPLICATION_FACTOR: 1
-      OFFSET_STORAGE_REPLICATION_FACTOR: 1
-      STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_BOOTSTRAP_SERVERS: "kafka:29092"
+      CONNECT_GROUP_ID: "cdc"
       CONNECT_KEY_CONVERTER: "io.confluent.connect.avro.AvroConverter"
       CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       CONNECT_VALUE_CONVERTER: "io.confluent.connect.avro.AvroConverter"
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
       CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_REST_ADVERTISED_HOST_NAME: "debezium"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "cdc"
       CONNECT_REST_PORT: 8083
-      CONNECT_GROUP_ID: "debezium"
-      CONNECT_CONFIG_STORAGE_TOPIC: "debezium_configs"
-      CONNECT_OFFSET_STORAGE_TOPIC: "debezium_offsets"
-      CONNECT_STATUS_STORAGE_TOPIC: "debezium_statuses"
+      CONNECT_CONFIG_STORAGE_TOPIC: "cdc_configs"
+      CONNECT_OFFSET_STORAGE_TOPIC: "cdc_offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "cdc_statuses"
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
     ports:
       - "127.0.0.1:8083:8083"
+
+  elasticsearch:
+    image: elasticsearch:7.17.10
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - enviloup_esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
 
 networks:
   default:
@@ -170,3 +182,5 @@ networks:
 volumes:
   enviloup_pg:
     name: enviloup_pg
+  enviloup_esdata:
+    name: enviloup_esdata
