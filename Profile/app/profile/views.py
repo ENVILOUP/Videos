@@ -16,14 +16,13 @@ router = APIRouter()
 
 
 @router.post("/")
-async def create_profile(profile_data: UserProfileCreationModel, request: Request, db: Annotated[Connection, Depends(get_connection)]):
+async def create_profile(profile_data: UserProfileCreationModel, db: Annotated[Connection, Depends(get_connection)], jwt_payload: Annotated[Request, Depends(get_uuid_from_token)]):
     async with db as conn:
-        jwt_payload = await get_uuid_from_token(request)
-        profile = UserProfile(name=profile_data.name,
-                              user_uuid=jwt_payload.sub)
-        uuid = await ProfileRepository.add_profile(conn, profile)
+            profile = UserProfile(name=profile_data.name,
+                                user_uuid=jwt_payload.sub)
+            uuid = await ProfileRepository.add_profile(conn, profile)
 
-        return uuid
+            return uuid
 
 
 @router.get("/{profile_uuid}")
@@ -34,18 +33,16 @@ async def get_profile(profile_uuid: UUID, db: Annotated[Connection, Depends(get_
 
 
 @router.put("/{profile_uuid}")
-async def update_profile(profile_uuid: UUID, request: Request, profile_data: UserProfileUpdateModel, db: Annotated[Connection, Depends(get_connection)]):
+async def update_profile(profile_uuid: UUID, request: Request, profile_data: UserProfileUpdateModel, db: Annotated[Connection, Depends(get_connection)], jwt_payload: Annotated[Request, Depends(get_uuid_from_token)]):
     async with db as conn:
-        jwt_payload = await get_uuid_from_token(request)
         profile = UserProfile(name=profile_data.name, user_uuid=jwt_payload.sub, profile_uuid=profile_uuid)
         uuid = await ProfileRepository.update_profile(conn, profile)
         return uuid
 
 
 @router.delete("/{profile_uuid}")
-async def delete_profile(profile_uuid: UUID, request: Request, db: Annotated[Connection, Depends(get_connection)]):
+async def delete_profile(profile_uuid: UUID, request: Request, db: Annotated[Connection, Depends(get_connection)], jwt_payload: Annotated[Request, Depends(get_uuid_from_token)]):
     async with db as conn:
-        jwt_payload = await get_uuid_from_token(request)
         if jwt_payload.role != "admin":
             raise HTTPException(status_code=401, detail="Unauthorized") 
         uuid = await ProfileRepository.delete_profile(conn, profile_uuid)
