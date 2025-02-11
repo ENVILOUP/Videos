@@ -1,10 +1,10 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from asyncpg import Connection
 
-from app.dependencies import get_connection, get_uuid_from_token
+from app.dependencies import JWTPayload, get_connection, get_uuid_from_token
 from app.profile.repositories import ProfileRepository, ChannelRepository
 from app.profile.models import UserProfile, Channel
 from app.profile.schemas import (UserProfileCreationModel,
@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 @router.post("/")
-async def create_profile(profile_data: UserProfileCreationModel, db: Annotated[Connection, Depends(get_connection)], jwt_payload: Annotated[Request, Depends(get_uuid_from_token)]):
+async def create_profile(profile_data: UserProfileCreationModel, db: Annotated[Connection, Depends(get_connection)], jwt_payload: Annotated[JWTPayload, Depends(get_uuid_from_token)]):
     async with db as conn:
             profile = UserProfile(name=profile_data.name,
                                 user_uuid=jwt_payload.sub)
@@ -33,7 +33,7 @@ async def get_profile(profile_uuid: UUID, db: Annotated[Connection, Depends(get_
 
 
 @router.put("/{profile_uuid}")
-async def update_profile(profile_uuid: UUID, request: Request, profile_data: UserProfileUpdateModel, db: Annotated[Connection, Depends(get_connection)], jwt_payload: Annotated[Request, Depends(get_uuid_from_token)]):
+async def update_profile(profile_uuid: UUID, profile_data: UserProfileUpdateModel, db: Annotated[Connection, Depends(get_connection)], jwt_payload: Annotated[JWTPayload, Depends(get_uuid_from_token)]):
     async with db as conn:
         profile = UserProfile(name=profile_data.name, user_uuid=jwt_payload.sub, profile_uuid=profile_uuid)
         uuid = await ProfileRepository.update_profile(conn, profile)
@@ -41,7 +41,7 @@ async def update_profile(profile_uuid: UUID, request: Request, profile_data: Use
 
 
 @router.delete("/{profile_uuid}")
-async def delete_profile(profile_uuid: UUID, request: Request, db: Annotated[Connection, Depends(get_connection)], jwt_payload: Annotated[Request, Depends(get_uuid_from_token)]):
+async def delete_profile(profile_uuid: UUID, db: Annotated[Connection, Depends(get_connection)], jwt_payload: Annotated[JWTPayload, Depends(get_uuid_from_token)]):
     async with db as conn:
         if jwt_payload.role != "admin":
             raise HTTPException(status_code=401, detail="Unauthorized") 
