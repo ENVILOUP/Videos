@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "profile"
+version = "1.0.0"
+description = "Provides operations with user profiles and channels"
+authors = ["justTrueCodeWriter <dmjustcoder8@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.115.5"
+uvicorn = "^0.32.1"
+asyncpg = "^0.30.0"
+yoyo-migrations = "^9.0.0"
+psycopg2-binary = "^2.9.10"
+pyjwt = "^2.10.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

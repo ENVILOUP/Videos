@@ -1,0 +1,8 @@
+lib/
+.venv/
+venv/
+
+*.env
+**/__pycache__
+
+*.cpython*
