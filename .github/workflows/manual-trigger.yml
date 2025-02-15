@@ -15,3 +15,6 @@ jobs:
 
   trigger-search:
     uses: ./.github/workflows/service-search.yml
+
+  trigger-profile:
+    uses: ./.github/workflows/service-profile.yml
