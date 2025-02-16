@@ -1,4 +1,4 @@
-name: Build and Push Authorization Service
+name: Build and Push Profile Service
 
 on:
   workflow_call:
@@ -11,7 +11,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  SERVICE_NAME: Authorization
+  SERVICE_NAME: Profile
 
 jobs:
   build-and-push:
@@ -37,7 +37,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./${{ env.SERVICE_NAME }}
-          file: ./${{ env.SERVICE_NAME }}/Dockerfile.production
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

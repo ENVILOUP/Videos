@@ -14,6 +14,7 @@ jobs:
       content: ${{ steps.filter.outputs.Content }}
       recommendations: ${{ steps.filter.outputs.Recommendations }}
       search: ${{ steps.filter.outputs.Search }}
+      profile: ${{ steps.filter.outputs.Profile }}
 
     steps:
       - name: Checkout code
@@ -32,6 +33,8 @@ jobs:
               - 'Recommendations/**'
             Search:
               - 'Search/**'
+            Profile:
+              - 'Profile/**'
 
   trigger-authorization:
     needs: detect-changes
@@ -52,3 +55,8 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.search == 'true'
     uses: ./.github/workflows/service-search.yml
+
+  trigger-profile:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.profile == 'true'
+    uses: ./.github/workflows/service-profile.yml
