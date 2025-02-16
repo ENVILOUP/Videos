@@ -1,28 +1,29 @@
 ﻿using app.Validators;
 using Microsoft.AspNetCore.Identity;
+using Moq;
+using tests.Helpers;
 namespace tests;
-
-public class TestUser {}
 
 public class ValidSymbolsPasswordValidatorTest
 {
-	private readonly HashSet<char> _validSymbols = [.. "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*+-_(){}[]'\":;.,/?`~\\|"];
-
-	private readonly ValidSymbolsPasswordValidator<TestUser> _validator;
+	private readonly ValidSymbolsPasswordValidator<IdentityUser> _validator;
+	private readonly IdentityUser _user;
+	private readonly UserManager<IdentityUser> _userManager;
 
 	public ValidSymbolsPasswordValidatorTest()
 	{
-		_validator = new ValidSymbolsPasswordValidator<TestUser>(_validSymbols);
+		_validator = new ValidSymbolsPasswordValidator<IdentityUser>();
+		_user = new IdentityUser();
+		_userManager = UserManagerHelper.CreateDefaultUserManager();
 	}
 
 	[Fact]
 	public async Task ValidateAsync_NullPassword_ReturnsSuccess()
 	{
-		var user = new TestUser();
 		string? password = null;
 
 
-		var result = await _validator.ValidateAsync(null!, user, password);
+		var result = await _validator.ValidateAsync(_userManager, _user, password);
 
 
 		Assert.True(result.Succeeded);
@@ -35,10 +36,7 @@ public class ValidSymbolsPasswordValidatorTest
 	[InlineData("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz")]
 	public async Task ValidateAsync_PasswordWithValidSymbols_ReturnsSuccess(string password)
 	{
-		var user = new TestUser();
-
-
-		var result = await _validator.ValidateAsync(null!, user, password);
+		var result = await _validator.ValidateAsync(_userManager, _user, password);
 
 
 		Assert.True(result.Succeeded);
@@ -51,10 +49,7 @@ public class ValidSymbolsPasswordValidatorTest
 	[InlineData("ټAaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz")]
 	public async Task ValidateAsync_PasswordWithInvalidSymbols_ReturnsFailure(string password)
 	{
-		var user = new TestUser();
-
-
-		var result = await _validator.ValidateAsync(null!, user, password);
+		var result = await _validator.ValidateAsync(_userManager, _user, password);
 
 
 		Assert.False(result.Succeeded);

@@ -9,12 +9,7 @@ namespace app.Validators
 {
 	public class ValidSymbolsPasswordValidator<TUser> : IPasswordValidator<TUser> where TUser : class
 	{
-		private readonly HashSet<char> _validSymbols;
-
-		public ValidSymbolsPasswordValidator(HashSet<char> validSymbols)
-		{
-			_validSymbols = validSymbols;
-		}
+		private readonly HashSet<char> _validSymbols = [.. "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*+-_(){}[]'\":;.,/?`~\\|"];
 
 		public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string? password)
 		{

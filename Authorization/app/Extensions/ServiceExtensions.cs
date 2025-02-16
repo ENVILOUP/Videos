@@ -93,11 +93,8 @@ namespace app
 			services.AddScoped<IPasswordValidator<IdentityUser>>(provider =>
 			 new MaxLengthPasswordValidator<IdentityUser>(64));
 
-			HashSet<char> validSymbols = [.. "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*+-_(){}[]'\":;.,/?`~\\|"];
-
-
 			services.AddScoped<IPasswordValidator<IdentityUser>>(provider =>
-			 new ValidSymbolsPasswordValidator<IdentityUser>(validSymbols));
+			 new ValidSymbolsPasswordValidator<IdentityUser>());
 		}
 
 		public static void ConfigureHealthChecks(this IServiceCollection services, string connectionString)

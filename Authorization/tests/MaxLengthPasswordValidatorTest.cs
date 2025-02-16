@@ -1,24 +1,30 @@
 using app.Validators;
+using Microsoft.AspNetCore.Identity;
+using tests.Helpers;
 
 namespace tests;
 
 public class MaxLengthPasswordValidatorTest
 {
-	private readonly MaxLengthPasswordValidator<TestUser> _validator;
+	private readonly MaxLengthPasswordValidator<IdentityUser> _validator;
+	private readonly UserManager<IdentityUser> _userManager;
+	private readonly IdentityUser _user;
 
 	public MaxLengthPasswordValidatorTest()
 	{
-		_validator = new MaxLengthPasswordValidator<TestUser>(16);
+		_validator = new MaxLengthPasswordValidator<IdentityUser>(16);
+		_userManager = UserManagerHelper.CreateDefaultUserManager();
+		_user = new IdentityUser();
 	}
+	
 
 	[Fact]
 	public async Task ValidateAsync_NullPassword_ReturnsSuccess()
 	{
-		var user = new TestUser();
 		string? password = null;
 
 
-		var result = await _validator.ValidateAsync(null!, user, password);
+		var result = await _validator.ValidateAsync(_userManager, _user, password);
 
 
 		Assert.True(result.Succeeded);
@@ -30,10 +36,7 @@ public class MaxLengthPasswordValidatorTest
 	[InlineData("1234567890")]
 	public async Task ValidateAsync_PasswordWithValidLength_ReturnsSuccess(string password)
 	{
-		var user = new TestUser();
-
-
-		var result = await _validator.ValidateAsync(null!, user, password);
+		var result = await _validator.ValidateAsync(_userManager, _user, password);
 
 
 		Assert.True(result.Succeeded);
@@ -44,10 +47,7 @@ public class MaxLengthPasswordValidatorTest
 	[InlineData("abcdefg123456789012345")]
 	public async Task ValidateAsync_PasswordWithInvalidLength_ReturnsFailure(string password)
 	{
-		var user = new TestUser();
-
-
-		var result = await _validator.ValidateAsync(null!, user, password);
+		var result = await _validator.ValidateAsync(_userManager, _user, password);
 
 
 		Assert.False(result.Succeeded);
