@@ -12,11 +12,11 @@ public class MaxLengthPasswordValidatorTest
 
 	public MaxLengthPasswordValidatorTest()
 	{
-		_validator = new MaxLengthPasswordValidator<IdentityUser>(16);
+		_validator = new MaxLengthPasswordValidator<IdentityUser>();
 		_userManager = UserManagerHelper.CreateDefaultUserManager();
 		_user = new IdentityUser();
 	}
-	
+
 
 	[Fact]
 	public async Task ValidateAsync_NullPassword_ReturnsSuccess()
@@ -43,8 +43,8 @@ public class MaxLengthPasswordValidatorTest
 	}
 
 	[Theory]
-	[InlineData("test123456789012345")]
-	[InlineData("abcdefg123456789012345")]
+	[InlineData("gV7!hD@x9pR25BmNqFzXJ8dCMV$ZoPkA&EfWuTysKwL6#tY5BmNqFzXJ8dCMV$ZoPkA&EfWuTys3*")]
+	[InlineData("abcdetJqV7X9hNpY5DfgtJqV712345X9hNpY5D12345678901tJqV7X9hNpY5D2345")]
 	public async Task ValidateAsync_PasswordWithInvalidLength_ReturnsFailure(string password)
 	{
 		var result = await _validator.ValidateAsync(_userManager, _user, password);

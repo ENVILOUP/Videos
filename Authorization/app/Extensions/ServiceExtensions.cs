@@ -91,7 +91,7 @@ namespace app
 			.AddDefaultTokenProviders();
 
 			services.AddScoped<IPasswordValidator<IdentityUser>>(provider =>
-			 new MaxLengthPasswordValidator<IdentityUser>(64));
+			 new MaxLengthPasswordValidator<IdentityUser>());
 
 			services.AddScoped<IPasswordValidator<IdentityUser>>(provider =>
 			 new ValidSymbolsPasswordValidator<IdentityUser>());

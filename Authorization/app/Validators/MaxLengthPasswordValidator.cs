@@ -8,12 +8,7 @@ namespace app.Validators
 {
 	public class MaxLengthPasswordValidator<TUser> : IPasswordValidator<TUser> where TUser : class
 	{
-		private readonly int _maxPasswordLength;
-
-		public MaxLengthPasswordValidator(int maxPasswordLength)
-		{
-			_maxPasswordLength = maxPasswordLength;
-		}
+		private readonly int _maxPasswordLength = 64;
 
 		public Task<IdentityResult> ValidateAsync(UserManager<TUser> manager, TUser user, string? password)
 		{
