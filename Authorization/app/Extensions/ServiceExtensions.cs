@@ -89,6 +89,12 @@ namespace app
 			})
 			.AddEntityFrameworkStores<AppDbContext>()
 			.AddDefaultTokenProviders();
+
+			services.AddScoped<IPasswordValidator<IdentityUser>>(provider =>
+			 new MaxLengthPasswordValidator<IdentityUser>());
+
+			services.AddScoped<IPasswordValidator<IdentityUser>>(provider =>
+			 new ValidSymbolsPasswordValidator<IdentityUser>());
 		}
 
 		public static void ConfigureHealthChecks(this IServiceCollection services, string connectionString)
