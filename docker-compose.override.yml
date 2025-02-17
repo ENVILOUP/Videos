@@ -12,7 +12,7 @@ services:
     environment:
       - DATABASE__CONNECTIONSTRING=Host=pg;Port=5432;Database=authdb;Username=postgres;Password=postgres
       - JWT_KEY=18Z0Vmuq5j99VY0X1xkIVlZ499t3SqHha7siBG29tnb4WAuR
-    entrypoint: dotnet watch run --urls http://0.0.0.0:8080
+    entrypoint: dotnet watch run --project /app/app.WebApi/app.WebApi.csproj --urls http://0.0.0.0:8080
 
   content-app:
     volumes:

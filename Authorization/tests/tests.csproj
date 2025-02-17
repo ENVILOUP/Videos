@@ -26,7 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\app\app.csproj" />
+    <ProjectReference Include="..\app\app.Core\app.Core.csproj" />
+    <ProjectReference Include="..\app\app.Application\app.Application.csproj" />
+    <ProjectReference Include="..\app\app.Infrastructure\app.Infrastructure.csproj" />
+    <ProjectReference Include="..\app\app.WebApi\app.WebApi.csproj" />
   </ItemGroup>
 
 </Project>
