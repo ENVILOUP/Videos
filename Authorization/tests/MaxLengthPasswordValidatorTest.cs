@@ -1,4 +1,4 @@
-using app.Validators;
+using app.Application.Validators;
 using Microsoft.AspNetCore.Identity;
 using tests.Helpers;
 

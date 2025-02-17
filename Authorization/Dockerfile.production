@@ -7,19 +7,28 @@ ENV ASPNETCORE_URLS=http://0.0.0.0:8080
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 USER app
+
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG configuration=Release
-WORKDIR /app
-COPY ./app/app.csproj /app/
-RUN dotnet restore "app.csproj"
-COPY ./app /app
-RUN dotnet build "app.csproj" -c $configuration -o /app/build
+WORKDIR /src
+
+COPY ./app/app.sln ./
+COPY ./app/app.Application/*.csproj ./app.Application/
+COPY ./app/app.Core/*.csproj ./app.Core/
+COPY ./app/app.Infrastructure/*.csproj ./app.Infrastructure/
+COPY ./app/app.WebApi/*.csproj ./app.WebApi/
+
+RUN dotnet restore "app.WebApi/app.WebApi.csproj"
+
+COPY ./app ./
+
+RUN dotnet build "app.WebApi/app.WebApi.csproj" -c $configuration -o /app/build
 
 FROM build AS publish
 ARG configuration=Release
-RUN dotnet publish "app.csproj" -c $configuration -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "app.WebApi/app.WebApi.csproj" -c $configuration -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "app.dll"]
+COPY --from=publish /app/publish ./
+ENTRYPOINT ["dotnet", "app.WebApi.dll"]
