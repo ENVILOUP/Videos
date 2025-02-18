@@ -5,7 +5,7 @@ from typing import List, Optional
 from asyncpg import Connection
 from asyncpg.exceptions import ForeignKeyViolationError
 
-from app.videos.models import Video, VideoTag
+from app.api.v1.videos.models import Video, VideoTag
 
 
 logger = logging.getLogger('uvicorn.error')
@@ -13,8 +13,10 @@ logger = logging.getLogger('uvicorn.error')
 
 class VideosRespository:
 
-    @staticmethod
-    async def get_video_by_uuid(conn: Connection, uuid: UUID) -> Optional[Video]:
+    def __init__(self, conn: Connection):
+        self._conn = conn
+
+    async def get_video_by_uuid(self, uuid: UUID) -> Optional[Video]:
         query = """
             SELECT
                 id,
@@ -28,15 +30,14 @@ class VideosRespository:
             WHERE video_uuid = $1;
         """
 
-        result = await conn.fetchrow(query, uuid)
+        result = await self._conn.fetchrow(query, uuid)
         
         if not result:
             return None
         
         return Video(**result)
     
-    @staticmethod
-    async def get_videos_by_uuid_in(conn: Connection, uuids: List[UUID]) -> List[Video]:
+    async def get_videos_by_uuid_in(self, uuids: List[UUID]) -> List[Video]:
         query = """
             SELECT
                 id,
@@ -53,12 +54,12 @@ class VideosRespository:
         if not uuids:
             return []
         
-        results = await conn.fetch(query, [str(uuid) for uuid in uuids])
+        results = await self._conn.fetch(query, [str(uuid) for uuid in uuids])
 
         return [Video(**result) for result in results]
     
     @staticmethod
-    async def add_video(conn: Connection, video: Video) -> Optional[UUID]:
+    async def add_video(self, video: Video) -> Optional[UUID]:
         query = """
             INSERT INTO videos
                 (video_uuid,
@@ -83,15 +84,17 @@ class VideosRespository:
                 video.created_at,
                 video.modified_at)
 
-        result = await conn.fetchrow(query, *args)
+        result = await self._conn.fetchrow(query, *args)
 
         return result.get('video_uuid')
 
 
 class VideosTagsRespository:
 
-    @staticmethod
-    async def get_tags_for_video(conn: Connection, video_uuid: UUID) -> List[VideoTag]:
+    def __init__(self, conn: Connection):
+        self._conn = conn
+
+    async def get_tags_for_video(self, video_uuid: UUID) -> List[VideoTag]:
         query = """
             SELECT
                 id,
@@ -103,12 +106,11 @@ class VideosTagsRespository:
             WHERE video_uuid = $1;
         """
 
-        results = await conn.fetch(query, video_uuid)
+        results = await self._conn.fetch(query, video_uuid)
 
         return [VideoTag(**result) for result in results]
     
-    @staticmethod
-    async def add_tags_to_video(conn: Connection, tags: List[VideoTag]) -> List[VideoTag]:
+    async def add_tags_to_video(self, tags: List[VideoTag]) -> List[VideoTag]:
         query = """
             INSERT INTO videos_tags 
                 (video_uuid, tag)
@@ -126,9 +128,9 @@ class VideosTagsRespository:
         results = []
 
         try:
-            async with conn.transaction() as t:
+            async with self._conn.transaction() as t:
                 for tag in tags:
-                    result = await conn.fetchrow(query, tag.video_uuid, tag.tag)
+                    result = await self._conn.fetchrow(query, tag.video_uuid, tag.tag)
                     if result:
                         results.append(result)
         except ForeignKeyViolationError:
