@@ -9,12 +9,15 @@ def getenv_bool(key: str, default: bool) -> bool:
     if not value:
         return default
     if value.lower() == 'true':
-       return True
-    return False 
+        return True
+    return False
 
 
 @dataclass
 class Config:
     debug: bool = getenv_bool('DEBUG', False)
+    elasticsearch_database: str = getenv(
+        'ELASTIC_DATABASE', 'http://elasticsearch:9200')
+
 
 config = Config()
