@@ -35,6 +35,10 @@ app.add_middleware(
 
 @app.get("/health-check")
 async def health_check(redis: Annotated[aioredis.Redis, Depends(get_redis)]):
+    try:
+        await redis.ping()
+    except Exception:
+        return BaseMessage(status=500, message='Redis connection error')
     return BaseMessage(status=200, message='Ok')
 
 
