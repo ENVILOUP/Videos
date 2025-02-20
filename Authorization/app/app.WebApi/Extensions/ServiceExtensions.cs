@@ -7,9 +7,9 @@ using FluentValidation;
 using app.Application.Validators;
 using app.Infrastructure;
 using app.Application.Services;
-using app.Core.IRepositories;
 using app.Infrastructure.Repositories;
 using app.Application.DTOs;
+using app.Application.IRepositories;
 
 namespace app.WebApi.Extensions
 {
@@ -20,14 +20,14 @@ namespace app.WebApi.Extensions
 			services.AddOpenApi();
 			services.AddControllers();
 
-			// services
 			services.AddScoped<JWTService>();
 			services.AddScoped<AuthService>();
 
-			// repositories
-			services.AddScoped<IAuthRepository, AuthRepository>();
+			services.AddScoped<IUserRepository, UserRepository>();
+			services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 			services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connectionString));
+
 			services.AddDefaultCors();
 		}
 

@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using app.Core.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 
-namespace app.Core.IRepositories
+namespace app.Application.IRepositories
 {
-	public interface IAuthRepository
-	{
-		Task<IdentityResult> AddNewUser(IdentityUser user, string password);
+    public interface IRefreshTokenRepository
+    {
 		Task AddRefreshToken(RefreshToken refreshTokenEntity);
 		Task UpdateRefreshToken(RefreshToken newRefreshTokenEntity, RefreshToken oldRefreshTokenEntity);
 		Task RevokeRefreshToken(RefreshToken refreshToken);
-		Task UserLogout(List<RefreshToken> tokens);
+		Task RevokeRefreshTokens(List<RefreshToken> tokens);
+		Task<RefreshToken?> FindRefreshTokenByTokenId(string tokenId);
+		Task<List<RefreshToken>> FindRefreshTokensByUserId(string userId);
     }
 }

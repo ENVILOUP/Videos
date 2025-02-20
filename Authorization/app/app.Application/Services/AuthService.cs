@@ -1,8 +1,7 @@
 using app.Application.DTOs;
 using app.Application.Entities;
-using app.Core.IRepositories;
+using app.Application.IRepositories;
 using app.Core.Models;
-using app.Infrastructure;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -21,8 +20,8 @@ namespace app.Application.Services
 		[FromServices] IValidator<LoginModel> loginModelValidator,
 		[FromServices] IValidator<RefreshTokenModel> refreshTokenModelValidator,
 		[FromServices] IValidator<RevokeTokenModel> revokeTokenModelValidator,
-		[FromServices] IAuthRepository authRepository,
-		[FromServices] AppDbContext dbContext
+		[FromServices] IUserRepository userRepository,
+		[FromServices] IRefreshTokenRepository refreshTokenRepository
 	)
 	{
 		private readonly UserManager<IdentityUser> _userManager = userManager;
@@ -34,8 +33,8 @@ namespace app.Application.Services
 		private readonly IValidator<RefreshTokenModel> _refreshTokenModelValidator = refreshTokenModelValidator;
 		private readonly IValidator<RevokeTokenModel> _revokeTokenModelValidator = revokeTokenModelValidator;
 
-		private readonly IAuthRepository _authRepository = authRepository;
-		private readonly AppDbContext _dbContext = dbContext;
+		private readonly IUserRepository _userRepository = userRepository;
+		private readonly IRefreshTokenRepository _refreshTokenRepository = refreshTokenRepository;
 
 		public async Task<ServiceResult<string>> RegisterAsync(RegisterModel model)
 		{
@@ -50,7 +49,7 @@ namespace app.Application.Services
 
 			try
 			{
-				var result = await _authRepository.AddNewUser(user, model.Password);
+				var result = await _userRepository.AddNewUser(user, model.Password);
 
 				if (!result.Succeeded)
 				{
@@ -98,7 +97,7 @@ namespace app.Application.Services
 
 			try
 			{
-				await _authRepository.AddRefreshToken(refreshTokenEntity);
+				await _refreshTokenRepository.AddRefreshToken(refreshTokenEntity);
 			}
 			catch (Exception ex)
 			{
@@ -124,7 +123,7 @@ namespace app.Application.Services
 				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.RefreshTokenNotValidData);
 			}
 
-			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(refreshToken => refreshToken.Token == model.RefreshToken);
+			var refreshToken = await _refreshTokenRepository.FindRefreshTokenByTokenId(model.RefreshToken);
 
 			if (refreshToken == null)
 			{
@@ -158,7 +157,7 @@ namespace app.Application.Services
 
 				try
 				{
-					await _authRepository.UpdateRefreshToken(
+					await _refreshTokenRepository.UpdateRefreshToken(
 						newRefreshTokenEntity: newRefreshTokenEntity,
 						oldRefreshTokenEntity: refreshToken
 					);
@@ -188,7 +187,7 @@ namespace app.Application.Services
 				return ServiceResult<string>.Fail(AuthResponseStatusCode.RevokeTokenNotValidData);
 			}
 
-			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(refreshToken => refreshToken.Token == model.RefreshToken);
+			var refreshToken = await _refreshTokenRepository.FindRefreshTokenByTokenId(model.RefreshToken);
 
 			if (refreshToken == null)
 			{
@@ -204,7 +203,7 @@ namespace app.Application.Services
 
 			try
 			{
-				await _authRepository.RevokeRefreshToken(refreshToken);
+				await _refreshTokenRepository.RevokeRefreshToken(refreshToken);
 			}
 			catch (Exception ex)
 			{
@@ -217,11 +216,11 @@ namespace app.Application.Services
 
 		public async Task<ServiceResult<string>> LogoutAsync(string userId)
 		{
-			var tokens = _dbContext.RefreshTokens.Where(refreshToken => refreshToken.UserId == userId).ToList();
+			var tokens = await _refreshTokenRepository.FindRefreshTokensByUserId(userId);
 
 			try
 			{
-				await _authRepository.UserLogout(tokens);
+				await _refreshTokenRepository.RevokeRefreshTokens(tokens);
 			}
 			catch (Exception ex)
 			{
