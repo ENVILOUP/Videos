@@ -16,6 +16,7 @@ RUN pip install --no-cache-dir poetry==1.8.4 \
 
 COPY ./app /app/app/
 COPY ./migrations /app/migrations/
+COPY ./tests /app/tests/
 
 EXPOSE 8080
 

@@ -17,6 +17,9 @@ from app.views import router as root_router
 from app.migrations import apply_migrations
 
 
+logger = logging.getLogger('uvicorn.error')
+
+
 def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -46,7 +49,6 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(BaseAppException)
     async def base_application_exception_handler(request: Request, exc: BaseAppException):
-        logger = logging.getLogger('uvicorn.error')
         logger.error(exc, exc_info=True)
         return JSONResponse(
             status_code=exc.http_status_code,
@@ -57,7 +59,6 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
-        logger = logging.getLogger('uvicorn.error')
         logger.error(exc, exc_info=True)
         return JSONResponse(
             status_code=422,
@@ -67,5 +68,6 @@ def create_app() -> FastAPI:
         )
 
     return app
+
 
 app = create_app()

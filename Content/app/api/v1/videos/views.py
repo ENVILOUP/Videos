@@ -5,11 +5,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from asyncpg import Connection
 
-from app.api.v1.videos.models import VideoTag
 from app.helpers.schemas import SuccessResponse
 from app.helpers.statuses import StatusCodes
-from app.helpers.exceptions import DeprecatedException, NotFoundException
-from app.api.v1.videos.schemas import VideoCreationModel, VideoModel, VideoTagModel
+from app.helpers.exceptions import ConflictException, NotFoundException
+from app.api.v1.videos.schemas import VideoCreationModel, VideoModel, VideoModelWithTags
 from app.api.v1.videos.repositories import VideosRespository, VideosTagsRespository
 from app.dependencies.postgresql import database_сonnection
 
@@ -17,8 +16,7 @@ from app.dependencies.postgresql import database_сonnection
 logger = logging.getLogger('uvicorn.error')
 
 router = APIRouter(
-    prefix="/videos",
-    tags=["videos"]
+    prefix="/videos"
 )
 
 
@@ -35,10 +33,41 @@ async def get_video(
     if not video:
         raise NotFoundException(StatusCodes.NOT_FOUND)
 
-    video = video.model_dump()  # TODO: refactor database model in DEV-46
     return {
         'status_code': StatusCodes.OK,
-        'data': VideoModel(**video)
+        'data': VideoModel(
+            video_uuid=video.video_uuid,
+            title=video.title,
+            description=video.description,
+            is_deleted=video.is_deleted
+        )
+    }
+
+
+@router.get(
+    path="/{uuid}/with-tags/",
+    response_model=SuccessResponse[VideoModelWithTags]
+)
+async def get_video_with_tags(
+    uuid: UUID,
+    db: Annotated[Connection, Depends(database_сonnection)]
+):
+    video = await VideosRespository(db).get_video_by_uuid(uuid)
+
+    if not video:
+        raise NotFoundException(StatusCodes.NOT_FOUND)
+
+    tags = await VideosTagsRespository(db).get_tags_for_video(uuid)
+
+    return {
+        'status_code': StatusCodes.OK,
+        'data': VideoModelWithTags(
+            video_uuid=video.video_uuid,
+            title=video.title,
+            description=video.description,
+            is_deleted=video.is_deleted,
+            tags=[tag.tag for tag in tags]
+        )
     }
 
 
@@ -50,13 +79,20 @@ async def get_videos_bulk(
     db: Annotated[Connection, Depends(database_сonnection)],
     video_uuids: List[UUID],
 ):
-    videos = await VideosRespository(db).get_videos_by_uuid_in(video_uuids)
+    videos = await VideosRespository(db).get_videos_by_uuids_list(video_uuids)
 
-    # TODO: refactor database model in DEV-46
-    videos = [video.model_dump() for video in videos]
+    videos = [
+        VideoModel(
+            video_uuid=video.video_uuid,
+            title=video.title,
+            description=video.description,
+            is_deleted=video.is_deleted
+        )
+        for video in videos
+    ]
     return {
         'status_code': StatusCodes.OK,
-        'data': [VideoModel(**video) for video in videos]
+        'data': videos
     }
 
 
@@ -64,15 +100,84 @@ async def get_videos_bulk(
     path="/",
     response_model=SuccessResponse[VideoModel]
 )
-async def update_video(
+async def create_video(
     video: VideoCreationModel,
     db: Annotated[Connection, Depends(database_сonnection)]
 ):
-    raise DeprecatedException()  # TODO: refactor this method in DEV-46
+    created_video = await VideosRespository(db).create_video(
+        title=video.title,
+        description=video.description
+    )
+
+    if not created_video:
+        raise ConflictException(StatusCodes.VIDEO_CREATION_FAILED)
+    
+    return {
+        'status_code': StatusCodes.VIDEO_CREATION_SUCCESS,
+        'data': VideoModel(
+            video_uuid=created_video.video_uuid,
+            title=created_video.title,
+            description=created_video.description,
+            is_deleted=created_video.is_deleted
+        )
+    }
+
+
+@router.put(
+    path="/{uuid}/",
+    response_model=SuccessResponse[VideoModel]
+)
+async def update_video(
+    uuid: UUID,
+    video: VideoCreationModel,
+    db: Annotated[Connection, Depends(database_сonnection)]
+):
+    updated_video = await VideosRespository(db).update_video(
+        video_uuid=uuid,
+        title=video.title,
+        description=video.description
+    )
+    
+    if not updated_video:
+        raise NotFoundException(StatusCodes.NOT_FOUND)
+    
+    return {
+        'status_code': StatusCodes.OK,
+        'data': VideoModel(
+            video_uuid=updated_video.video_uuid,
+            title=updated_video.title,
+            description=updated_video.description,
+            is_deleted=updated_video.is_deleted
+        )
+    }
+
+
+@router.delete(
+    path="/{uuid}/",
+    response_model=SuccessResponse[VideoModel]
+)
+async def delete_video(
+    uuid: UUID,
+    db: Annotated[Connection, Depends(database_сonnection)]
+):
+    deleted_video = await VideosRespository(db).delete_video(uuid)
+
+    if not deleted_video:
+        raise NotFoundException(StatusCodes.NOT_FOUND)
+
+    return {
+        'status_code': StatusCodes.OK,
+        'data': VideoModel(
+            video_uuid=deleted_video.video_uuid,
+            title=deleted_video.title,
+            description=deleted_video.description,
+            is_deleted=deleted_video.is_deleted
+        )
+    }
 
 
 @router.get(
-    path='/{video_uuid}/tags/',
+    path="/{video_uuid}/tags/",
     response_model=SuccessResponse[List[str]]
 )
 async def get_tags_for_video(
@@ -87,8 +192,24 @@ async def get_tags_for_video(
     }
 
 
+@router.delete(
+    path="/{video_uuid}/tags/",
+    response_model=SuccessResponse[List[str]]
+)
+async def delete_video_tags(
+    uuid: UUID,
+    db: Annotated[Connection, Depends(database_сonnection)]
+):
+    videos_tags = await VideosTagsRespository(db).delete_video_tags(uuid)
+
+    return {
+        'status_code': StatusCodes.OK,
+        'data': [videos_tag.tag for videos_tag in videos_tags]
+    }
+
+
 @router.post(
-    path='/{video_uuid}/tags/',
+    path="/{video_uuid}/tags/",
     response_model=SuccessResponse[List[str]]
 )
 async def add_tags_to_video(
@@ -96,11 +217,9 @@ async def add_tags_to_video(
     tags: List[str],
     db: Annotated[Connection, Depends(database_сonnection)]
 ):
-    videos_tags = [VideoTag(video_uuid=video_uuid, tag=tag)
-                    for tag in tags]  # TODO refactor this in DEV-46
-    videos_tags = await VideosTagsRespository(db).add_tags_to_video(videos_tags)
+    videos_tags = await VideosTagsRespository(db).add_tags_to_video(video_uuid, tags)
 
     return {
-        'status_code': StatusCodes.TAGS_ADDED,
+        'status_code': StatusCodes.OK,
         'data': [videos_tag.tag for videos_tag in videos_tags]
     }

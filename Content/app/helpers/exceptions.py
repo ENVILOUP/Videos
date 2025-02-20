@@ -16,6 +16,16 @@ class NotFoundException(BaseAppException):
             app_status_code=status_code
         )
 
+class ConflictException(BaseAppException):
+    """ Conflict exception. HTTP status code 409. """
+
+    def __init__(self, status_code: StatusCodes):
+        super().__init__(
+            http_status_code=409,
+            app_status_code=status_code
+        )
+
+
 class DeprecatedException(BaseAppException):
     """ Use for deprecated methods. HTTP status code 410. """
 

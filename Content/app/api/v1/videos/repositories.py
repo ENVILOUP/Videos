@@ -1,11 +1,13 @@
 import logging
-from uuid import UUID
+from uuid import UUID, uuid4
 from typing import List, Optional
 
 from asyncpg import Connection
 from asyncpg.exceptions import ForeignKeyViolationError
 
-from app.api.v1.videos.models import Video, VideoTag
+from app.models.videos import Video
+from app.models.videos_tags import VideoTag
+from app.helpers.sql import clean_query
 
 
 logger = logging.getLogger('uvicorn.error')
@@ -17,76 +19,186 @@ class VideosRespository:
         self._conn = conn
 
     async def get_video_by_uuid(self, uuid: UUID) -> Optional[Video]:
-        query = """
+        assert isinstance(uuid, UUID), 'uuid must be an instance of UUID'
+
+        query = clean_query("""
             SELECT
-                id,
                 video_uuid,
                 yt_id,
                 title,
                 description,
                 created_at,
-                modified_at
+                modified_at,
+                is_deleted
             FROM videos
             WHERE video_uuid = $1;
-        """
+        """)
 
         result = await self._conn.fetchrow(query, uuid)
-        
+
         if not result:
             return None
-        
-        return Video(**result)
-    
-    async def get_videos_by_uuid_in(self, uuids: List[UUID]) -> List[Video]:
-        query = """
+
+        return Video(
+            video_uuid=result['video_uuid'],
+            yt_id=result['yt_id'],
+            title=result['title'],
+            description=result['description'],
+            created_at=result['created_at'],
+            modified_at=result['modified_at'],
+            is_deleted=result['is_deleted']
+        )
+
+    async def get_videos_by_uuids_list(self, uuids: List[UUID]) -> List[Video]:
+        query = clean_query("""
             SELECT
-                id,
                 video_uuid,
                 yt_id,
                 title,
                 description,
                 created_at,
-                modified_at
+                modified_at,
+                is_deleted
             FROM videos
             WHERE video_uuid = ANY($1::uuid[]);
-        """
+        """)
 
         if not uuids:
             return []
-        
-        results = await self._conn.fetch(query, [str(uuid) for uuid in uuids])
 
-        return [Video(**result) for result in results]
-    
-    @staticmethod
-    async def add_video(self, video: Video) -> Optional[UUID]:
-        query = """
-            INSERT INTO videos
-                (video_uuid,
-                 title,
-                 description,
-                 created_at,
-                 modified_at)
+        assert all(isinstance(uuid, UUID)
+                   for uuid in uuids), 'uuids must be a list of UUID instances'
+
+        results = await self._conn.fetch(
+            query,
+            [str(uuid) for uuid in uuids]
+        )
+
+        return [
+            Video(
+                video_uuid=result['video_uuid'],
+                yt_id=result['yt_id'],
+                title=result['title'],
+                description=result['description'],
+                created_at=result['created_at'],
+                modified_at=result['modified_at'],
+                is_deleted=result['is_deleted']
+            )
+            for result in results
+        ]
+
+    async def create_video(
+        self,
+        title: str,
+        description: str
+    ) -> Optional[Video]:
+        query = clean_query("""
+            INSERT INTO videos(
+                video_uuid,
+                title,
+                description
+            )
             VALUES
-	            ($1, $2, $3, $4, $5)
-            ON CONFLICT (video_uuid) DO UPDATE 
-            SET
-                title = EXCLUDED.title,
-                description = EXCLUDED.description,
-                modified_at = NOW()
-            WHERE videos.video_uuid = EXCLUDED.video_uuid
-            RETURNING videos.video_uuid;
-        """
+                ($1, $2, $3)
+            ON CONFLICT (video_uuid) DO NOTHING
+            RETURNING
+                video_uuid,
+                yt_id,
+                title,
+                description,
+                created_at,
+                modified_at,
+                is_deleted;
+        """)
 
-        args = (video.video_uuid,
-                video.title,
-                video.description,
-                video.created_at,
-                video.modified_at)
+        args = (uuid4(),
+                title,
+                description)
 
         result = await self._conn.fetchrow(query, *args)
 
-        return result.get('video_uuid')
+        if not result:
+            return None
+
+        return Video(
+            video_uuid=result['video_uuid'],
+            yt_id=result['yt_id'],
+            title=result['title'],
+            description=result['description'],
+            created_at=result['created_at'],
+            modified_at=result['modified_at'],
+            is_deleted=result['is_deleted']
+        )
+
+    async def update_video(
+        self,
+        video_uuid: UUID,
+        title: str,
+        description: str
+    ) -> Optional[Video]:
+        query = clean_query("""
+            UPDATE videos
+            SET
+                title = $2,
+                description = $3,
+                modified_at = NOW()
+            WHERE video_uuid = $1
+            RETURNING
+                video_uuid,
+                yt_id,
+                title,
+                description,
+                created_at,
+                modified_at,
+                is_deleted;
+        """)
+
+        result = await self._conn.fetchrow(query, video_uuid, title, description)
+
+        if not result:
+            return None
+
+        return Video(
+            video_uuid=result['video_uuid'],
+            yt_id=result['yt_id'],
+            title=result['title'],
+            description=result['description'],
+            created_at=result['created_at'],
+            modified_at=result['modified_at'],
+            is_deleted=result['is_deleted']
+        )
+
+    async def delete_video(self, video_uuid: UUID) -> Optional[Video]:
+        query = clean_query("""
+            UPDATE videos
+            SET
+                is_deleted = TRUE,
+                modified_at = NOW()
+            WHERE video_uuid = $1
+            RETURNING
+                video_uuid,
+                yt_id,
+                title,
+                description,
+                created_at,
+                modified_at,
+                is_deleted;
+        """)
+
+        result = await self._conn.fetchrow(query, video_uuid)
+
+        if not result:
+            return None
+
+        return Video(
+            video_uuid=result['video_uuid'],
+            yt_id=result['yt_id'],
+            title=result['title'],
+            description=result['description'],
+            created_at=result['created_at'],
+            modified_at=result['modified_at'],
+            is_deleted=result['is_deleted']
+        )
 
 
 class VideosTagsRespository:
@@ -97,7 +209,6 @@ class VideosTagsRespository:
     async def get_tags_for_video(self, video_uuid: UUID) -> List[VideoTag]:
         query = """
             SELECT
-                id,
                 video_uuid,
                 tag,
                 created_at,
@@ -108,18 +219,30 @@ class VideosTagsRespository:
 
         results = await self._conn.fetch(query, video_uuid)
 
-        return [VideoTag(**result) for result in results]
-    
-    async def add_tags_to_video(self, tags: List[VideoTag]) -> List[VideoTag]:
+        return [
+            VideoTag(
+                video_uuid=result['video_uuid'],
+                tag=result['tag'],
+                created_at=result['created_at'],
+                modified_at=result['modified_at']
+            )
+            for result in results
+        ]
+
+    async def add_tags_to_video(self, video_uuid: UUID, tags: List[str]) -> List[VideoTag]:
         query = """
-            INSERT INTO videos_tags 
-                (video_uuid, tag)
+            INSERT INTO videos_tags(
+                video_uuid,
+                tag
+            )
             VALUES
                 ($1, $2)
-            ON CONFLICT (video_uuid, tag) DO UPDATE 
-                SET video_uuid = EXCLUDED.video_uuid,
-                    tag = EXCLUDED.tag
-            RETURNING videos_tags.video_uuid, videos_tags.tag;
+            ON CONFLICT DO NOTHING
+            RETURNING
+                video_uuid,
+                tag,
+                created_at,
+                modified_at;
         """
 
         if not tags:
@@ -130,10 +253,41 @@ class VideosTagsRespository:
         try:
             async with self._conn.transaction() as t:
                 for tag in tags:
-                    result = await self._conn.fetchrow(query, tag.video_uuid, tag.tag)
+                    result = await self._conn.fetchrow(query, video_uuid, tag)
                     if result:
                         results.append(result)
         except ForeignKeyViolationError:
             return []
 
-        return [VideoTag(**result) for result in results]
+        return [
+            VideoTag(
+                video_uuid=result['video_uuid'],
+                tag=result['tag'],
+                created_at=result['created_at'],
+                modified_at=result['modified_at']
+            )
+            for result in results
+        ]
+
+    async def delete_video_tags(self, video_uuid: UUID) -> List[VideoTag]:
+        query = """
+            DELETE FROM videos_tags
+            WHERE video_uuid = $1
+            RETURNING
+                video_uuid,
+                tag,
+                created_at,
+                modified_at;
+        """
+
+        results = await self._conn.fetch(query, video_uuid)
+
+        return [
+            VideoTag(
+                video_uuid=result['video_uuid'],
+                tag=result['tag'],
+                created_at=result['created_at'],
+                modified_at=result['modified_at']
+            )
+            for result in results
+        ]
