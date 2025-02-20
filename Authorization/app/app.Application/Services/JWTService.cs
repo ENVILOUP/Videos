@@ -36,8 +36,6 @@ namespace app.Application.Services
 				throw new InvalidOperationException("JWT_Key not found");
 			}
 
-			_logger.LogInformation($"JWT_KEY: {jwtKey}");
-
 			var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
 
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

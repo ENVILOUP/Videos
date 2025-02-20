@@ -1,6 +1,7 @@
+using app.Application.DTOs;
+using app.Application.Entities;
 using app.Core.IRepositories;
 using app.Core.Models;
-using app.Core.Models.Response;
 using app.Infrastructure;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
@@ -67,13 +68,13 @@ namespace app.Application.Services
 			return ServiceResult<string>.Ok(user.Id, AuthResponseStatusCode.Registered);
 		}
 
-		public async Task<ServiceResult<object>> LoginAsync(LoginModel model)
+		public async Task<ServiceResult<TokensModel>> LoginAsync(LoginModel model)
 		{
 			var validationResult = await _loginModelValidator.ValidateAsync(model);
 			if (!validationResult.IsValid)
 			{
 				_logger.LogError(validationResult.Errors.ToString());
-				return ServiceResult<object>.Fail(AuthResponseStatusCode.LoginNotValidData);
+				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.LoginNotValidData);
 			}
 
 			var user = await _userManager.FindByNameAsync(model.Username);
@@ -81,13 +82,13 @@ namespace app.Application.Services
 			if (user == null)
 			{
 				_logger.LogError("User not found");
-				return ServiceResult<object>.Fail(AuthResponseStatusCode.UserNotFound);
+				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.UserNotFound);
 			}
 
 			if (!await _userManager.CheckPasswordAsync(user, model.Password))
 			{
 				_logger.LogError("Login not match password");
-				return ServiceResult<object>.Fail(AuthResponseStatusCode.LoginNotMatchPassword);
+				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.LoginNotMatchPassword);
 			}
 
 			var accessToken = _jwtService.GenerateJwtToken(user);
@@ -102,19 +103,25 @@ namespace app.Application.Services
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, message: ex.Message);
-				return ServiceResult<object>.Fail(AuthResponseStatusCode.ServerError);
+				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.ServerError);
 			}
 
-			return ServiceResult<object>.Ok(new { AccessToken = accessToken, RefreshToken = refreshToken }, AuthResponseStatusCode.LoggedIn);
+			var tokens = new TokensModel
+			{
+				AccessToken = accessToken,
+				RefreshToken = refreshToken
+			};
+
+			return ServiceResult<TokensModel>.Ok(tokens, AuthResponseStatusCode.LoggedIn);
 		}
 
-		public async Task<ServiceResult<object>> RefreshTokenAsync(RefreshTokenModel model)
+		public async Task<ServiceResult<TokensModel>> RefreshTokenAsync(RefreshTokenModel model)
 		{
 			var validationResult = await _refreshTokenModelValidator.ValidateAsync(model);
 			if (!validationResult.IsValid)
 			{
 				_logger.LogError(validationResult.Errors.ToString());
-				return ServiceResult<object>.Fail(AuthResponseStatusCode.RefreshTokenNotValidData);
+				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.RefreshTokenNotValidData);
 			}
 
 			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(refreshToken => refreshToken.Token == model.RefreshToken);
@@ -122,7 +129,7 @@ namespace app.Application.Services
 			if (refreshToken == null)
 			{
 				_logger.LogError("Refresh token not found");
-				return ServiceResult<object>.Fail(AuthResponseStatusCode.RefreshTokenNotFound);
+				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.RefreshTokenNotFound);
 			}
 
 			const int WINDOW_TIME_HOURS = 1;
@@ -131,14 +138,14 @@ namespace app.Application.Services
 			if (tokenExpiryWithWindow <= DateTime.UtcNow || refreshToken.IsRevoked || refreshToken.IsUsed)
 			{
 				_logger.LogError("Invalid token");
-				return ServiceResult<object>.Fail(AuthResponseStatusCode.InvalidToken);
+				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.InvalidToken);
 			}
 
 			var user = await _userManager.FindByIdAsync(refreshToken.UserId);
 			if (user == null)
 			{
 				_logger.LogError("User not found");
-				return ServiceResult<object>.Fail(AuthResponseStatusCode.UserNotFound);
+				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.UserNotFound);
 			}
 
 			var newAccessToken = _jwtService.GenerateJwtToken(user);
@@ -159,11 +166,17 @@ namespace app.Application.Services
 				catch (Exception ex)
 				{
 					_logger.LogError(ex, message: ex.Message);
-					return ServiceResult<object>.Fail(AuthResponseStatusCode.ServerError);
+					return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.ServerError);
 				}
 			}
 
-			return ServiceResult<object>.Ok(new { AccessToken = newAccessToken, RefreshToken = newRefreshToken }, AuthResponseStatusCode.TokenRefreshed);
+			var tokens = new TokensModel
+			{
+				AccessToken = newAccessToken,
+				RefreshToken = newRefreshToken
+			};
+
+			return ServiceResult<TokensModel>.Ok(tokens, AuthResponseStatusCode.TokenRefreshed);
 		}
 
 		public async Task<ServiceResult<string>> RevokeTokenAsync(RevokeTokenModel model)

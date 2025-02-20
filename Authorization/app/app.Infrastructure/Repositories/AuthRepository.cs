@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using app.Core.IRepositories;
 using app.Core.Models;
-using app.Core.Models.Response;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;

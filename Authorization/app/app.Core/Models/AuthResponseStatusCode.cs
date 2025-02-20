@@ -1,4 +1,4 @@
-namespace app.Core.Models.Response
+namespace app.Core.Models
 {
 	public enum AuthResponseStatusCode
 	{

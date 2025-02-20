@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using app.Core.Models;
 
-namespace app.Core.Models.Response
+namespace app.WebApi.Helpers.Response
 {
-    public class SuccessResponse<T>
+    public class ErrorResponse
     {
         [JsonPropertyName("success")]
-		public bool Success { get; set; } = true;
-
-		[JsonPropertyName("data")]
-		public required T Data { get; set; }
+		public bool Success { get; set; } = false;
 
 		[JsonPropertyName("status_code")]
 		public AuthResponseStatusCode StatusCode { get; set; }

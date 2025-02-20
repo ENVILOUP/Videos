@@ -4,11 +4,10 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace app.Core.Models
+namespace app.Application.DTOs
 {
-    public class LoginModel
+    public class RefreshTokenModel
     {
-        public required string Username { get; set; }
-		public required string Password { get; set; }
+        public required string RefreshToken { get; set; }
     }
 }

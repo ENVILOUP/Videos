@@ -36,7 +36,7 @@ namespace app.WebApi.Extensions
 
 			var response = new
 			{
-				context.Response.StatusCode,
+				StatusCode =  context.Response.StatusCode,
 				Message = "Server error.",
 			};
 

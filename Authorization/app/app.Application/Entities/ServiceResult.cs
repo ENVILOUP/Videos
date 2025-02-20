@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using app.Core.Models.Response;
+using app.Core.Models;
 
-namespace app.Core.Models
+namespace app.Application.Entities
 {
 	public class ServiceResult<T>
 	{
@@ -18,5 +18,4 @@ namespace app.Core.Models
 		public static ServiceResult<T> Fail(AuthResponseStatusCode statusCode) =>
 			new() { Success = false, StatusCode = statusCode };
 	}
-
 }

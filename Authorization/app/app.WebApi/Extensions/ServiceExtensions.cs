@@ -9,7 +9,7 @@ using app.Infrastructure;
 using app.Application.Services;
 using app.Core.IRepositories;
 using app.Infrastructure.Repositories;
-using app.Core.Models;
+using app.Application.DTOs;
 
 namespace app.WebApi.Extensions
 {

@@ -4,12 +4,11 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace app.Core.Models
+namespace app.Application.DTOs
 {
-    public class RegisterModel
+    public class LoginModel
     {
-		public required string Username { get; set; }
+        public required string Username { get; set; }
 		public required string Password { get; set; }
-		public required string Email { get; set; }
     }
 }

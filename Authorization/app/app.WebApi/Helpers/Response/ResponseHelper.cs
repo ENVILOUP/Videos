@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using app.Core.Models.Response;
+using app.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace app.Core.Models.Response
+namespace app.WebApi.Helpers.Response
 {
 	public static class ResponseHelper
 	{
