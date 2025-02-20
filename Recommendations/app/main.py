@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import redis.asyncio as aioredis
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import videos
 from app.dependencies import get_redis
@@ -23,9 +24,21 @@ app = FastAPI(
     responses=RESPONSES_TYPES_DOC
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.get("/health-check")
 async def health_check(redis: Annotated[aioredis.Redis, Depends(get_redis)]):
+    try:
+        await redis.ping()
+    except Exception:
+        return BaseMessage(status=500, message='Redis connection error')
     return BaseMessage(status=200, message='Ok')
 
 
