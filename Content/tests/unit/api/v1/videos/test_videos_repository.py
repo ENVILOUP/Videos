@@ -145,7 +145,7 @@ class TestVideosRespository:
 
     @pytest.mark.skip
     @pytest.mark.asyncio
-    async def test_create_video(self, connection): # todo
+    async def test_create_video(self, connection):
         connection.fetchrow.side_effect = [
             {
                 'video_uuid': UUID('3686f6cd-fb8b-44fd-8ac6-8d04a6f8ce38'),
