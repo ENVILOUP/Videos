@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import redis.asyncio as aioredis
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import videos
 from app.dependencies import get_redis
@@ -21,6 +22,14 @@ class BaseMessage(BaseModel):
 app = FastAPI(
     title='Recommendations service',
     responses=RESPONSES_TYPES_DOC
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
