@@ -4,24 +4,8 @@ The service provides content for users
 
 [Swagger](http://content.api.enviloup.localhost/docs)
 
-## Development
-
-Before work you need:
-
-1. Docker and Docker compose installed
-
------
-
-1. Build 
+# To run tests
 
 ```shell
-docker compose build
+docker compose exec -it content-app pytest -vvv --cov=/app --cov-report=term-missing
 ```
-
-2. Run for development
-
-```shell
-docker compose up -d
-```
-
-3. Open and make GET for [link](http://content.api.enviloup.localhost/) and check

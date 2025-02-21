@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 from pydantic import BaseModel, computed_field
 
@@ -8,6 +8,7 @@ from app.config import config
 class VideoModel(BaseModel):
     video_uuid: UUID
     title: str
+    is_deleted: bool
     description: Optional[str] = None
 
     @computed_field
@@ -19,6 +20,10 @@ class VideoModel(BaseModel):
     @property
     def thumbnail_url(self) -> str:
         return f'{config.cdn_base_url}/thumbnails/{self.video_uuid}/default.webp'
+
+
+class VideoModelWithTags(VideoModel):
+    tags: List[str]
 
 
 class VideoCreationModel(BaseModel):

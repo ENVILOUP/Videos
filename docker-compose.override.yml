@@ -17,6 +17,8 @@ services:
   content-app:
     volumes:
       - ./Content/app:/app/app
+      - ./Content/migrations:/app/migrations
+      - ./Content/tests:/app/tests
     command: "--log-level debug --reload --reload-dir /app/"
 
   recommendations-app:
