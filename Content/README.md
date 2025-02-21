@@ -7,5 +7,5 @@ The service provides content for users
 # To run tests
 
 ```shell
-docker compose exec -it content-app pytest -vvv
+docker compose exec -it content-app pytest -vvv --cov=/app --cov-report=term-missing
 ```

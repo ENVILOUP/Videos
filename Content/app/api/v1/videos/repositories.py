@@ -89,6 +89,7 @@ class VideosRespository:
 
     async def create_video(
         self,
+        uuid: UUID,
         title: str,
         description: str
     ) -> Optional[Video]:
@@ -111,7 +112,7 @@ class VideosRespository:
                 is_deleted;
         """)
 
-        args = (uuid4(),
+        args = (uuid,
                 title,
                 description)
 
@@ -207,7 +208,7 @@ class VideosTagsRespository:
         self._conn = conn
 
     async def get_tags_for_video(self, video_uuid: UUID) -> List[VideoTag]:
-        query = """
+        query = clean_query("""
             SELECT
                 video_uuid,
                 tag,
@@ -215,7 +216,7 @@ class VideosTagsRespository:
                 modified_at
             FROM videos_tags
             WHERE video_uuid = $1;
-        """
+        """)
 
         results = await self._conn.fetch(query, video_uuid)
 
@@ -230,7 +231,7 @@ class VideosTagsRespository:
         ]
 
     async def add_tags_to_video(self, video_uuid: UUID, tags: List[str]) -> List[VideoTag]:
-        query = """
+        query = clean_query("""
             INSERT INTO videos_tags(
                 video_uuid,
                 tag
@@ -243,7 +244,7 @@ class VideosTagsRespository:
                 tag,
                 created_at,
                 modified_at;
-        """
+        """)
 
         if not tags:
             return []
@@ -270,7 +271,7 @@ class VideosTagsRespository:
         ]
 
     async def delete_video_tags(self, video_uuid: UUID) -> List[VideoTag]:
-        query = """
+        query = clean_query("""
             DELETE FROM videos_tags
             WHERE video_uuid = $1
             RETURNING
@@ -278,7 +279,7 @@ class VideosTagsRespository:
                 tag,
                 created_at,
                 modified_at;
-        """
+        """)
 
         results = await self._conn.fetch(query, video_uuid)
 

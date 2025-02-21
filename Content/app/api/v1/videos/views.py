@@ -1,6 +1,6 @@
 import logging
 from typing import List, Annotated
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends
 from asyncpg import Connection
@@ -105,6 +105,7 @@ async def create_video(
     db: Annotated[Connection, Depends(database_сonnection)]
 ):
     created_video = await VideosRespository(db).create_video(
+        uuid=uuid4(),
         title=video.title,
         description=video.description
     )
