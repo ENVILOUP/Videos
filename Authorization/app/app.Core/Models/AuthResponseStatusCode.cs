@@ -25,6 +25,7 @@ namespace app.Core.Models
 		TokenExpired = 4105,
 		TokenRevokeFailed = 4106,
 		TokenAlreadyRevoked = 4107,
+		SQLException = 4108,
 
 		// 🔥 Server errors
 		ServerError = 5000 

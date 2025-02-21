@@ -18,16 +18,9 @@ namespace app.Infrastructure.Repositories
 
         public async Task<IdentityResult> AddNewUser(IdentityUser user, string password)
         {
-            try
-            {
-                var result = await _userManager.CreateAsync(user, password);
+            var result = await _userManager.CreateAsync(user, password);
 
-                return result;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            return result;
         }
     }
 }

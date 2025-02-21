@@ -58,6 +58,11 @@ namespace app.Application.Services
 				}
 
 			}
+			catch (DbUpdateException ex)
+			{
+				_logger.LogError(ex, message: ex.Message);
+				return ServiceResult<string>.Fail(AuthResponseStatusCode.SQLException);
+			}
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, message: ex.Message);
@@ -98,6 +103,11 @@ namespace app.Application.Services
 			try
 			{
 				await _refreshTokenRepository.AddRefreshToken(refreshTokenEntity);
+			}
+			catch (DbUpdateException ex)
+			{
+				_logger.LogError(ex, message: ex.Message);
+				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.SQLException);
 			}
 			catch (Exception ex)
 			{
@@ -162,6 +172,11 @@ namespace app.Application.Services
 						oldRefreshTokenEntity: refreshToken
 					);
 				}
+				catch (DbUpdateException ex)
+				{
+					_logger.LogError(ex, message: ex.Message);
+					return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.SQLException);
+				}
 				catch (Exception ex)
 				{
 					_logger.LogError(ex, message: ex.Message);
@@ -205,6 +220,11 @@ namespace app.Application.Services
 			{
 				await _refreshTokenRepository.RevokeRefreshToken(refreshToken);
 			}
+			catch (DbUpdateException ex)
+			{
+				_logger.LogError(ex, message: ex.Message);
+				return ServiceResult<string>.Fail(AuthResponseStatusCode.SQLException);
+			}
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, message: ex.Message);
@@ -221,6 +241,11 @@ namespace app.Application.Services
 			try
 			{
 				await _refreshTokenRepository.RevokeRefreshTokens(tokens);
+			}
+			catch (DbUpdateException ex)
+			{
+				_logger.LogError(ex, message: ex.Message);
+				return ServiceResult<string>.Fail(AuthResponseStatusCode.SQLException);
 			}
 			catch (Exception ex)
 			{

@@ -19,58 +19,30 @@ namespace app.Infrastructure.Repositories
 
         public async Task AddRefreshToken(RefreshToken refreshTokenEntity)
 		{
-			try
-			{
-				await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity);
-				await _dbContext.SaveChangesAsync();
-			}
-			catch (Exception)
-			{
-				throw;
-			}
+			await _dbContext.RefreshTokens.AddAsync(refreshTokenEntity);
+			await _dbContext.SaveChangesAsync();
 		}
 
 		public async Task<RefreshToken?> FindRefreshTokenByTokenId(string tokenId)
 		{
-			try
-			{
-				var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(refreshToken => refreshToken.Token == tokenId);
+			var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(refreshToken => refreshToken.Token == tokenId);
 
-				return refreshToken ?? null;
-			}
-			catch (Exception)
-			{
-				throw;
-			}
-        }
+			return refreshToken ?? null;
+		}
 
 		public async Task<List<RefreshToken>> FindRefreshTokensByUserId(string userId)
 		{
-			try
-			{
-				var refreshTokens = await _dbContext.RefreshTokens.Where(refreshToken => refreshToken.UserId == userId).ToListAsync();
+			var refreshTokens = await _dbContext.RefreshTokens.Where(refreshToken => refreshToken.UserId == userId).ToListAsync();
 
-				return refreshTokens; 
-			}
-			catch (Exception)
-			{
-				throw;
-			}
-        }
+			return refreshTokens;
+		}
 
         public async Task RevokeRefreshToken(RefreshToken refreshToken)
 		{
-			try
-			{
-				refreshToken.IsRevoked = true;
+			refreshToken.IsRevoked = true;
 
-				_dbContext.RefreshTokens.Update(refreshToken);
-				await _dbContext.SaveChangesAsync();
-			}
-			catch (Exception)
-			{
-				throw;
-			}
+			_dbContext.RefreshTokens.Update(refreshToken);
+			await _dbContext.SaveChangesAsync();
 		}
 
 		public async Task UpdateRefreshToken(RefreshToken newRefreshTokenEntity, RefreshToken oldRefreshTokenEntity)
@@ -88,17 +60,10 @@ namespace app.Infrastructure.Repositories
 
 		public async Task RevokeRefreshTokens(List<RefreshToken> tokens)
 		{
-			try
-			{
-				tokens.ForEach(refreshToken => refreshToken.IsRevoked = true);
-				_dbContext.RefreshTokens.UpdateRange(tokens);
+			tokens.ForEach(refreshToken => refreshToken.IsRevoked = true);
+			_dbContext.RefreshTokens.UpdateRange(tokens);
 
-				await _dbContext.SaveChangesAsync();
-			}
-			catch (Exception)
-			{
-				throw;
-			}
+			await _dbContext.SaveChangesAsync();
 		}
     }
 }
