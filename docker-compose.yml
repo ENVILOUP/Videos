@@ -96,6 +96,8 @@ services:
     command: "--log-level debug"
     healthcheck:
       <<: *services-healthcheck
+    depends_on:
+      - elasticsearch
   
   profile-app:
     image: enviloup/profile:latest
