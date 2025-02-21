@@ -1,13 +1,14 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 import logging
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from app.dependencies.elasticsearch import elasticsearch
 from app.views import router as root_router
 from app.api.routers import router as api_router
 from app.config import config
-from app.helpers.swagger import RESPONSES_TYPES_DOC
 from app.helpers.exceptions import BaseAppException
 from app.helpers.schemas import ErrorResponse
 from app.helpers.statuses import StatusCodes
@@ -16,10 +17,15 @@ logger = logging.getLogger('uvicorn.error')
 
 
 def create_app() -> FastAPI:
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        await elasticsearch.connect()
+        yield
+
     app = FastAPI(
         title="Search Service",
         debug=config.debug,
-        responses=RESPONSES_TYPES_DOC
+        lifespan=lifespan
     )
 
     app.add_middleware(

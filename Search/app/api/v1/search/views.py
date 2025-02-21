@@ -1,13 +1,13 @@
 import logging
-from typing import List
+from typing import Annotated, Dict, List
 
-from fastapi import APIRouter, Query
-from elasticsearch import Elasticsearch
+from fastapi import APIRouter, Depends, Query
 
-from app.helpers.exceptions import NotFoundException
-from app.helpers.schemas import SuccessResponse
+from app.api.v1.search.models import SearchResponseModel
+from app.api.v1.search.repositories import SearchService
 from app.helpers.statuses import StatusCodes
-from app.config import config
+from app.helpers.schemas import SuccessResponse
+from app.dependencies.elasticsearch import ElasticConnector, elasticsearch_instance
 
 logger = logging.getLogger('uvicorn.error')
 
@@ -16,34 +16,19 @@ router = APIRouter(
 )
 
 
-@router.get(path="/", response_model=SuccessResponse[List[str]])
-async def search(page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=50), query: str = Query("")):
+async def get_search_service(connector: ElasticConnector = Depends(elasticsearch_instance)) -> SearchService:
+    return SearchService(connector)
 
-    start_index = (page - 1) * size
-    end_index = start_index + size
 
-    es = Elasticsearch(config.elasticsearch_database)
-    results = es.search(index="cdc.public.videos",
-                        body={
-                            "query": {
-                                "match": {
-                                    "title": {
-                                        "query": query,
-                                        "fuzziness": "auto"
-                                    }
-                                }
-                            }
-                        })
-
-    hits = [result["_source"]["video_uuid"]
-            for result in results['hits']['hits']]
-
-    if hits == []:
-        raise NotFoundException(StatusCodes.NOT_FOUND)
-
-    paginated_ids = hits[start_index:end_index]
-
+@router.get(path="/", response_model=SuccessResponse[SearchResponseModel])
+async def search(
+    page: Annotated[int, Query(ge=1)] = 1,
+    size: Annotated[int, Query(ge=1, le=50)] = 10,
+    query: Annotated[str, Query()] = "",
+    search_service: SearchService = Depends(get_search_service),
+):
+    result = await search_service.search_videos(query=query, page=page, size=size)
     return {
-        'status_code': StatusCodes.OK,
-        'data': paginated_ids
+        "status_code": StatusCodes.OK,
+        "data": result
     }
