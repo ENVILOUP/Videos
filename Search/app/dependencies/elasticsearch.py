@@ -30,8 +30,8 @@ class ElasticConnector:
 elasticsearch = ElasticConnector()
 
 
-async def elasticsearch_instance() -> AsyncGenerator[ElasticConnector, None]:
-    if elasticsearch._es is None:
+async def elasticsearch_connector_instance() -> AsyncGenerator[ElasticConnector, None]:
+    if elasticsearch.get_instance() is None:
         await elasticsearch.connect()
     try:
         yield elasticsearch

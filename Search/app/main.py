@@ -9,6 +9,7 @@ from app.dependencies.elasticsearch import elasticsearch
 from app.views import router as root_router
 from app.api.routers import router as api_router
 from app.config import config
+from app.helpers.swagger import RESPONSES_TYPES_DOC
 from app.helpers.exceptions import BaseAppException
 from app.helpers.schemas import ErrorResponse
 from app.helpers.statuses import StatusCodes
@@ -25,7 +26,8 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="Search Service",
         debug=config.debug,
-        lifespan=lifespan
+        lifespan=lifespan,
+        responses=RESPONSES_TYPES_DOC
     )
 
     app.add_middleware(
