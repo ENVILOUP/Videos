@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 from app.migrations import apply_migrations
 from app.views import router as root_router
-from app.profile.views import router as profile_router
+from app.api.routers import router as api_router
 from app.config import config
 
 
@@ -34,5 +34,5 @@ class BaseMessage(BaseModel):
     message: str
 
 
-app.include_router(root_router, prefix="")
-app.include_router(profile_router, prefix="/profiles")
+app.include_router(root_router)
+app.include_router(api_router)

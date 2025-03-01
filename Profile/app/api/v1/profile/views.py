@@ -12,7 +12,9 @@ from app.profile.schemas import (UserProfileCreationModel,
                                  ChannelCreationModel,
                                  ChannelUpdateModel)
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/profiles"
+)
 
 
 @router.post("/")
