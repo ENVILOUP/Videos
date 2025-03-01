@@ -3,7 +3,8 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 from asyncpg import Connection
 
-from app.profile.models import Channel, UserProfile
+from app.models.channel import Channel
+from app.models.user_profile import UserProfile
 
 
 class ProfileRepository:
