@@ -1,7 +1,8 @@
 import logging
 from fastapi import APIRouter, Depends
+from elasticsearch import AsyncElasticsearch
 
-from app.dependencies.elasticsearch import elasticsearch_connector_instance, ElasticConnector
+from app.dependencies.elasticsearch import elasticsearch_instance
 from app.helpers.schemas import SuccessResponse
 from app.helpers.statuses import StatusCodes
 
@@ -14,10 +15,9 @@ logger = logging.getLogger('uvicorn.error')
     path="/health-check",
     response_model=SuccessResponse[str]
 )
-async def health_check(elasticsearch: ElasticConnector = Depends(elasticsearch_connector_instance)):
+async def health_check(elasticsearch: AsyncElasticsearch = Depends(elasticsearch_instance)):
     try:
-        es = await elasticsearch.get_instance()
-        es.ping()
+        await elasticsearch.ping()
     except Exception as e:
         logger.error(e, exc_info=True)
         raise e

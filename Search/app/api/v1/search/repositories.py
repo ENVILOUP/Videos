@@ -1,22 +1,21 @@
 import logging
 from typing import List
-from app.dependencies.elasticsearch import ElasticConnector
+from elasticsearch import AsyncElasticsearch
 
+from app.dependencies.elasticsearch import ElasticConnector
 from app.api.v1.search.shemas import SearchResponseModel
 
 logger = logging.getLogger('uvicorn.error')
 
 
 class SearchRepository:
-    def __init__(self, connector: ElasticConnector):
-        self.connector = connector
+    def __init__(self, elasticsearch: AsyncElasticsearch):
+        self._elasticsearch = elasticsearch
 
     async def search_videos(self, query: str, page: int, size: int) -> SearchResponseModel:
         try:
             from_index = (page - 1) * size
 
-
-            es_instance = await self.connector.get_instance()
 
             videos_index = "cdc.public.videos"
             videos_body = {
@@ -29,7 +28,7 @@ class SearchRepository:
                 "from": from_index,
                 "track_total_hits": True
             }
-            videos_results = await es_instance.search(index=videos_index, body=videos_body)
+            videos_results = await self._elasticsearch.search(index=videos_index, body=videos_body)
 
             tags_index = "cdc.public.videos_tags"
             tags_body = {
@@ -42,7 +41,7 @@ class SearchRepository:
                 "from": from_index,
                 "track_total_hits": True
             }
-            tags_results = await es_instance.search(index=tags_index, body=tags_body)
+            tags_results = await self._elasticsearch.search(index=tags_index, body=tags_body)
 
             hits_without_duplication = set(self._extract_video_uuids(videos_results)).union(set(self._extract_video_uuids(tags_results)))
             hits = list(hits_without_duplication)

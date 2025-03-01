@@ -30,11 +30,11 @@ class ElasticConnector:
 elasticsearch = ElasticConnector()
 
 
-async def elasticsearch_connector_instance() -> AsyncGenerator[ElasticConnector, None]:
+async def elasticsearch_instance() -> AsyncGenerator[AsyncElasticsearch, None]:
     if elasticsearch.get_instance() is None:
         await elasticsearch.connect()
     try:
-        yield elasticsearch
+        yield await elasticsearch.get_instance()
     finally:
         await elasticsearch.release()
         logger.debug("Connection closed")
