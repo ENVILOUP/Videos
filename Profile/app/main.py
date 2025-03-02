@@ -1,38 +1,71 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+import logging
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
-from app.migrations import apply_migrations
-from app.views import router as root_router
-from app.profile.views import router as profile_router
+from app.dependencies.postgresql import database
+from app.helpers.swagger import RESPONSES_TYPES_DOC
+from app.helpers.exceptions import BaseAppException
+from app.helpers.schemas import ErrorResponse
+from app.helpers.statuses import StatusCodes
 from app.config import config
+from app.api.routers import router as api_router
+from app.views import router as root_router
+from app.migrations import apply_migrations
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    apply_migrations()
-    yield
-
-app = FastAPI(
-    title="Profile Service",
-    debug=config.debug,
-    lifespan=lifespan
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+logger = logging.getLogger('uvicorn.error')
 
 
-class BaseMessage(BaseModel):
-    status: int
-    message: str
+def create_app() -> FastAPI:
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        await database.connect()
+        apply_migrations()
+        yield
+        await database.disconnect()
+
+    app = FastAPI(
+        title='Profile Service',
+        lifespan=lifespan,
+        debug=config.debug,
+        responses=RESPONSES_TYPES_DOC
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    app.include_router(root_router)
+    app.include_router(api_router)
+
+    @app.exception_handler(BaseAppException)
+    async def base_application_exception_handler(request: Request, exc: BaseAppException):
+        logger.error(exc, exc_info=True)
+        return JSONResponse(
+            status_code=exc.http_status_code,
+            content=ErrorResponse(
+                status_code=exc.app_status_code
+            ).model_dump()
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request: Request, exc: RequestValidationError):
+        logger.error(exc, exc_info=True)
+        return JSONResponse(
+            status_code=422,
+            content=ErrorResponse(
+                status_code=StatusCodes.VALIDATION_ERROR
+            ).model_dump()
+        )
+
+    return app
 
 
-app.include_router(root_router, prefix="")
-app.include_router(profile_router, prefix="/profiles")
+app = create_app()
