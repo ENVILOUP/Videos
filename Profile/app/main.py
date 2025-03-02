@@ -11,7 +11,7 @@ from app.helpers.exceptions import BaseAppException
 from app.helpers.schemas import ErrorResponse
 from app.helpers.statuses import StatusCodes
 from app.config import config
-from app.api.routers import api_router
+from app.api.routers import router as api_router
 from app.views import router as root_router
 from app.migrations import apply_migrations
 
@@ -28,7 +28,7 @@ def create_app() -> FastAPI:
         await database.disconnect()
 
     app = FastAPI(
-        title='Content Service',
+        title='Profile Service',
         lifespan=lifespan,
         debug=config.debug,
         responses=RESPONSES_TYPES_DOC

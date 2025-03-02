@@ -1,21 +1,10 @@
-from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import AsyncGenerator
 
-from asyncpg import connect, Connection
-from fastapi import Request, HTTPException
+from fastapi import HTTPException, Request
 import jwt
 
 from app.config import config
 
-
-@asynccontextmanager
-async def get_connection() -> AsyncGenerator[Connection, None]:
-    try:
-        connection = await connect(config.database)
-        yield connection
-    finally:
-        await connection.close()
 
 @dataclass
 class JWTPayload:
@@ -23,6 +12,7 @@ class JWTPayload:
     role: str
     jti: str
     exp: int
+
 
 async def get_uuid_from_token(request: Request) -> JWTPayload:
     auth_header = request.headers.get('Authorization')
@@ -40,6 +30,6 @@ async def get_uuid_from_token(request: Request) -> JWTPayload:
     SECRET_KEY = config.jwt_key
 
     decoded_payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"], options={
-                                    "verify_exp": False, "verify_aud": False})
+        "verify_exp": False, "verify_aud": False})
 
     return JWTPayload(sub=decoded_payload["sub"], role=decoded_payload["role"], jti=decoded_payload["jti"], exp=decoded_payload["exp"])

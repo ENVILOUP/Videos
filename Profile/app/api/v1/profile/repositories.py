@@ -3,17 +3,20 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 from asyncpg import Connection
 
+from app.helpers.sql import clean_query
 from app.models.channel import Channel
 from app.models.user_profile import UserProfile
 
 
 class ProfileRepository:
 
-    @staticmethod
-    async def add_profile(conn: Connection, profile: UserProfile) -> Optional[UUID]:
+    def __init__(self, conn: Connection):
+        self._conn = conn
+
+    async def add_profile(self, profile: UserProfile) -> Optional[UUID]:
         profile.profile_uuid = uuid4()
 
-        query = """
+        query = clean_query("""
             INSERT INTO user_profiles
                 (profile_uuid,
                  user_uuid,
@@ -24,7 +27,7 @@ class ProfileRepository:
                 ($1, $2, $3, $4, $5)
             ON CONFLICT DO NOTHING 
             RETURNING profile_uuid;
-        """
+        """)
 
         args = (profile.profile_uuid,
                 profile.user_uuid,
@@ -32,83 +35,90 @@ class ProfileRepository:
                 profile.created_at,
                 profile.updated_at)
 
-        result = await conn.fetchrow(query, *args)
+        result = await self._conn.fetchrow(query, *args)
 
         if not result:
             return None
 
-        return result.get('profile_uuid')
+        return result['profile_uuid']
 
-    @staticmethod
-    async def get_profile(conn: Connection, uuid: UUID) -> Optional[UserProfile]:
-        query = """
+    async def get_profile(self, uuid: UUID) -> Optional[UserProfile]:
+        query = clean_query("""
             SELECT
                 profile_uuid,
                 user_uuid,
                 name,
                 created_at,
-                updated_at
+                updated_at,
+                deleted 
             FROM user_profiles
-            WHERE profile_uuid = $1;
-        """
+            WHERE profile_uuid = $1 and deleted = false;
+        """)
 
-        result = await conn.fetchrow(query, uuid)
+        result = await self._conn.fetchrow(query, uuid)
 
         if not result:
             return None
 
-        return UserProfile(**result)
+        return UserProfile(
+            profile_uuid=result['profile_uuid'],
+            user_uuid=result['user_uuid'],
+            name=result['name'],
+            created_at=result['created_at'],
+            updated_at=result['updated_at'],
+            deleted=result['deleted']
+        )
 
-    @staticmethod
-    async def update_profile(conn: Connection, profile: UserProfile) -> Optional[UUID]:
+    async def update_profile(self, profile: UserProfile) -> Optional[UUID]:
         profile.updated_at = datetime.now()
 
-        query = """
+        query = clean_query("""
             UPDATE user_profiles
             SET
                 user_uuid = $1,
                 name = $2,
                 updated_at = $3
-            WHERE profile_uuid = $4;
-        """
+            WHERE profile_uuid = $4 and deleted = false;
+        """)
 
         args = (profile.user_uuid,
                 profile.name,
                 profile.updated_at,
                 profile.profile_uuid)
 
-        result = await conn.execute(query, *args)
+        result = await self._conn.execute(query, *args)
 
         if not result:
             return None
 
-        return profile.profile_uuid 
+        return profile.profile_uuid
 
-    @staticmethod
-    async def delete_profile(conn: Connection, uuid: UUID) -> Optional[UUID]:
+    async def delete_profile(self, uuid: UUID) -> Optional[UUID]:
 
-        query = """
+        query = clean_query("""
             UPDATE user_profiles
             SET
                 deleted = true
-            WHERE profile_uuid = $1;
-        """
+            WHERE profile_uuid = $1 and deleted = false;
+        """)
 
-        result = await conn.execute(query, uuid)
+        result = await self._conn.execute(query, uuid)
 
         if not result:
             return None
 
-        return uuid 
+        return uuid
 
 
 class ChannelRepository:
 
-    @staticmethod
-    async def add_channel(conn: Connection, channel: Channel) -> Optional[UUID]:
+    def __init__(self, conn: Connection):
+        self._conn = conn
+
+    async def add_channel(self, channel: Channel) -> Optional[UUID]:
         channel.channel_uuid = uuid4()
 
-        query = """
+        query = clean_query("""
             INSERT INTO channels
                 (channel_uuid,
                  owner_uuid,
@@ -119,7 +129,7 @@ class ChannelRepository:
                 ($1, $2, $3, $4, $5)
             ON CONFLICT DO NOTHING 
             RETURNING channel_uuid;
-        """
+        """)
 
         args = (channel.channel_uuid,
                 channel.owner_uuid,
@@ -127,86 +137,101 @@ class ChannelRepository:
                 channel.created_at,
                 channel.updated_at)
 
-        result = await conn.fetchrow(query, *args)
+        result = await self._conn.fetchrow(query, *args)
 
         if not result:
             return None
 
-        return result.get('channel_uuid')
+        return result['channel_uuid']
 
-    @staticmethod
-    async def get_channel(conn: Connection, uuid: UUID) -> Optional[Channel]:
-        query = """
+    async def get_channel(self, uuid: UUID) -> Optional[Channel]:
+        query = clean_query("""
             SELECT
                 channel_uuid,
                 owner_uuid,
                 name,
                 created_at,
-                updated_at
+                updated_at,
+                deleted
             FROM channels
-            WHERE channel_uuid = $1;
-        """
+            WHERE channel_uuid = $1 and deleted = false;
+        """)
 
-        result = await conn.fetchrow(query, uuid)
+        result = await self._conn.fetchrow(query, uuid)
 
         if not result:
             return None
 
-        return Channel(**result)
+        return Channel(
+            channel_uuid=result['channel_uuid'],
+            owner_uuid=result['owner_uuid'],
+            name=result['name'],
+            created_at=result['created_at'],
+            updated_at=result['updated_at'],
+            deleted=result['deleted']
+        )
 
-    @staticmethod
-    async def get_channels(conn: Connection, owner_uuid: Optional[UUID]) -> Optional[List[Channel]]:
-        query = """
+    async def get_channels(self, owner_uuid: Optional[UUID]) -> List[Channel]:
+        query = clean_query("""
             SELECT
                 channel_uuid,
                 owner_uuid,
                 name,
                 created_at,
-                updated_at
+                updated_at,
+                deleted
             FROM channels 
-            WHERE owner_uuid = $1;
-        """
+            WHERE owner_uuid = $1 and deleted = false;
+        """)
 
-        result = await conn.fetch(query, owner_uuid)
+        result = await self._conn.fetch(query, owner_uuid)
 
         if not result:
-            return None
+            return []
 
-        return [Channel(**channel) for channel in result]
+        return [
+            Channel(
+                channel_uuid=channel['channel_uuid'],
+                owner_uuid=channel['owner_uuid'],
+                name=channel['name'],
+                created_at=channel['created_at'],
+                updated_at=channel['updated_at'],
+                deleted=channel['deleted']
+            )
+            for channel in result
+        ]
 
-    @staticmethod
-    async def delete_channel(conn: Connection, uuid: UUID) -> Optional[UUID]:
-        query = """
+    async def delete_channel(self, uuid: UUID) -> Optional[UUID]:
+        query = clean_query("""
             UPDATE channels 
             SET
                 deleted = true
-            WHERE channel_uuid = $1;
-        """
+            WHERE channel_uuid = $1 and deleted = false;
+        """)
 
-        result = await conn.execute(query, uuid)
+        result = await self._conn.execute(query, uuid)
 
         if not result:
             return None
 
-        return uuid 
+        return uuid
 
-    @staticmethod
-    async def update_channel(conn: Connection, channel: Channel) -> Optional[UUID]:
-        query = """
+    async def update_channel(self, channel: Channel) -> Optional[UUID]:
+        query = clean_query("""
             UPDATE channels
             SET
                 name = $1,
                 updated_at = $2
-            WHERE channel_uuid = $3;
-        """
+            WHERE channel_uuid = $3 and deleted = false;
+        """)
 
         args = (channel.name,
                 channel.updated_at,
                 channel.channel_uuid)
 
-        result = await conn.execute(query, *args)
+        result = await self._conn.execute(query, *args)
 
         if not result:
             return None
 
-        return channel.channel_uuid 
+        return channel.channel_uuid
