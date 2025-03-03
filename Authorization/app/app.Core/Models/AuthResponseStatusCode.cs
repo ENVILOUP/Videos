@@ -9,6 +9,7 @@ namespace app.Core.Models
 		TokenRefreshed = 2102, 
 		TokenRevoked = 2103,
 		LoggedOut = 2104,
+		UserCreated = 2105,
 
 		// ⚠️ Validation errors
 		RegisterNotValidData = 4000,
@@ -26,6 +27,8 @@ namespace app.Core.Models
 		TokenRevokeFailed = 4106,
 		TokenAlreadyRevoked = 4107,
 		SQLException = 4108,
+		CreateUserNotValidData = 4109,
+		RoleNotSupported = 4110,
 
 		// 🔥 Server errors
 		ServerError = 5000 

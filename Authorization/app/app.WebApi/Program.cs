@@ -17,6 +17,7 @@ builder.Services.ConfigureHealthChecks(connectionString);
 builder.Services.ConfigureSwagger();
 builder.Services.ConfigureIdentity();
 builder.Services.ConfigureJwtAuthentication(builder.Configuration);
+builder.Services.ConfigureAuthorization();
 
 var app = builder.Build();
 

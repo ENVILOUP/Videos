@@ -20,6 +20,7 @@ namespace app.Application.Services
 		[FromServices] IValidator<LoginModel> loginModelValidator,
 		[FromServices] IValidator<RefreshTokenModel> refreshTokenModelValidator,
 		[FromServices] IValidator<RevokeTokenModel> revokeTokenModelValidator,
+		[FromServices] IValidator<CreateUserModel> createUserModelValidator,
 		[FromServices] IUserRepository userRepository,
 		[FromServices] IRefreshTokenRepository refreshTokenRepository
 	)
@@ -32,6 +33,7 @@ namespace app.Application.Services
 		private readonly IValidator<LoginModel> _loginModelValidator = loginModelValidator;
 		private readonly IValidator<RefreshTokenModel> _refreshTokenModelValidator = refreshTokenModelValidator;
 		private readonly IValidator<RevokeTokenModel> _revokeTokenModelValidator = revokeTokenModelValidator;
+		private readonly IValidator<CreateUserModel> _createUserModelValidator = createUserModelValidator;
 
 		private readonly IUserRepository _userRepository = userRepository;
 		private readonly IRefreshTokenRepository _refreshTokenRepository = refreshTokenRepository;
@@ -57,6 +59,14 @@ namespace app.Application.Services
 					return ServiceResult<string>.Fail(AuthResponseStatusCode.RegistrationFailed);
 				}
 
+				var roleResult = await _userRepository.ApplyUserRole(user);
+
+				if (!roleResult.Succeeded)
+				{
+					_logger.LogError(roleResult.Errors.ToString());
+					return ServiceResult<string>.Fail(AuthResponseStatusCode.RegistrationFailed);
+				}
+
 			}
 			catch (DbUpdateException ex)
 			{
@@ -70,6 +80,49 @@ namespace app.Application.Services
 			}
 
 			return ServiceResult<string>.Ok(user.Id, AuthResponseStatusCode.Registered);
+		}
+
+		public async Task<ServiceResult<string>> CreateUserAsync(CreateUserModel model)
+		{
+			var validationResult = await _createUserModelValidator.ValidateAsync(model);
+			if (!validationResult.IsValid)
+			{
+				_logger.LogError(validationResult.Errors.ToString());
+				return ServiceResult<string>.Fail(AuthResponseStatusCode.CreateUserNotValidData);
+			}
+
+			var user = new IdentityUser { UserName = model.Username, Email = model.Email };
+
+			try
+			{
+				var result = await _userRepository.AddNewUser(user, model.Password);
+
+				if (!result.Succeeded)
+				{
+					_logger.LogError(result.Errors.ToString());
+					return ServiceResult<string>.Fail(AuthResponseStatusCode.RegistrationFailed);
+				}
+
+				var roleResult = await _userRepository.ApplyUserRole(user, model.Role);
+
+				if (!roleResult.Succeeded)
+				{
+					_logger.LogError(roleResult.Errors.ToString());
+					return ServiceResult<string>.Fail(AuthResponseStatusCode.RegistrationFailed);
+				}
+
+				return ServiceResult<string>.Ok(user.Id, AuthResponseStatusCode.UserCreated);
+			}
+			catch (DbUpdateException ex)
+			{
+				_logger.LogError(ex, message: ex.Message);
+				return ServiceResult<string>.Fail(AuthResponseStatusCode.SQLException);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, message: ex.Message);
+				return ServiceResult<string>.Fail(AuthResponseStatusCode.ServerError);
+			}
 		}
 
 		public async Task<ServiceResult<TokensModel>> LoginAsync(LoginModel model)
@@ -95,33 +148,41 @@ namespace app.Application.Services
 				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.LoginNotMatchPassword);
 			}
 
-			var accessToken = _jwtService.GenerateJwtToken(user);
-			var refreshToken = _jwtService.GenerateRefreshToken();
-
-			var refreshTokenEntity = GetNewRefreshToken(user, refreshToken);
-
 			try
 			{
-				await _refreshTokenRepository.AddRefreshToken(refreshTokenEntity);
-			}
-			catch (DbUpdateException ex)
-			{
-				_logger.LogError(ex, message: ex.Message);
-				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.SQLException);
+				var accessToken = await _jwtService.GenerateJwtToken(user);
+				var refreshToken = _jwtService.GenerateRefreshToken();
+
+				var refreshTokenEntity = GetNewRefreshToken(user, refreshToken);
+
+				try
+				{
+					await _refreshTokenRepository.AddRefreshToken(refreshTokenEntity);
+				}
+				catch (DbUpdateException ex)
+				{
+					_logger.LogError(ex, message: ex.Message);
+					return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.SQLException);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, message: ex.Message);
+					return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.ServerError);
+				}
+
+				var tokens = new TokensModel
+				{
+					AccessToken = accessToken,
+					RefreshToken = refreshToken
+				};
+
+				return ServiceResult<TokensModel>.Ok(tokens, AuthResponseStatusCode.LoggedIn);
 			}
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, message: ex.Message);
 				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.ServerError);
 			}
-
-			var tokens = new TokensModel
-			{
-				AccessToken = accessToken,
-				RefreshToken = refreshToken
-			};
-
-			return ServiceResult<TokensModel>.Ok(tokens, AuthResponseStatusCode.LoggedIn);
 		}
 
 		public async Task<ServiceResult<TokensModel>> RefreshTokenAsync(RefreshTokenModel model)
@@ -157,40 +218,48 @@ namespace app.Application.Services
 				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.UserNotFound);
 			}
 
-			var newAccessToken = _jwtService.GenerateJwtToken(user);
-			var newRefreshToken = model.RefreshToken;
-
-			if (refreshToken.ExpiryDate <= DateTime.UtcNow)
+			try
 			{
-				newRefreshToken = _jwtService.GenerateRefreshToken();
-				var newRefreshTokenEntity = GetNewRefreshToken(user, newRefreshToken);
+				var newAccessToken = await _jwtService.GenerateJwtToken(user);
+				var newRefreshToken = model.RefreshToken;
 
-				try
+				if (refreshToken.ExpiryDate <= DateTime.UtcNow)
 				{
-					await _refreshTokenRepository.UpdateRefreshToken(
-						newRefreshTokenEntity: newRefreshTokenEntity,
-						oldRefreshTokenEntity: refreshToken
-					);
+					newRefreshToken = _jwtService.GenerateRefreshToken();
+					var newRefreshTokenEntity = GetNewRefreshToken(user, newRefreshToken);
+
+					try
+					{
+						await _refreshTokenRepository.UpdateRefreshToken(
+							newRefreshTokenEntity: newRefreshTokenEntity,
+							oldRefreshTokenEntity: refreshToken
+						);
+					}
+					catch (DbUpdateException ex)
+					{
+						_logger.LogError(ex, message: ex.Message);
+						return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.SQLException);
+					}
+					catch (Exception ex)
+					{
+						_logger.LogError(ex, message: ex.Message);
+						return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.ServerError);
+					}
 				}
-				catch (DbUpdateException ex)
+
+				var tokens = new TokensModel
 				{
-					_logger.LogError(ex, message: ex.Message);
-					return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.SQLException);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex, message: ex.Message);
-					return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.ServerError);
-				}
+					AccessToken = newAccessToken,
+					RefreshToken = newRefreshToken
+				};
+
+				return ServiceResult<TokensModel>.Ok(tokens, AuthResponseStatusCode.TokenRefreshed);
 			}
-
-			var tokens = new TokensModel
+			catch (Exception ex)
 			{
-				AccessToken = newAccessToken,
-				RefreshToken = newRefreshToken
-			};
-
-			return ServiceResult<TokensModel>.Ok(tokens, AuthResponseStatusCode.TokenRefreshed);
+				_logger.LogError(ex, message: ex.Message);
+				return ServiceResult<TokensModel>.Fail(AuthResponseStatusCode.ServerError);
+			}
 		}
 
 		public async Task<ServiceResult<string>> RevokeTokenAsync(RevokeTokenModel model)

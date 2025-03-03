@@ -32,6 +32,17 @@ namespace app.WebApi.Controllers
 				: ResponseHelper.Error(result.StatusCode);
 		}
 
+		[Authorize(Policy = "RequireAdminRole")]
+		[HttpPost("create-user")]
+		public async Task<IActionResult> CreateUser([FromBody] CreateUserModel model)
+		{
+			var result = await _authService.CreateUserAsync(model);
+
+			return result.Success
+				? ResponseHelper.Ok(result.Data, result.StatusCode)
+				: ResponseHelper.Error(result.StatusCode);
+		}
+
 		[HttpPost("login")]
 		public async Task<IActionResult> Login([FromBody] LoginModel model)
 		{
