@@ -10,6 +10,7 @@ using app.Application.Services;
 using app.Infrastructure.Repositories;
 using app.Application.DTOs;
 using app.Application.IRepositories;
+using app.Core.Models;
 
 namespace app.WebApi.Extensions
 {
@@ -52,6 +53,14 @@ namespace app.WebApi.Extensions
 					IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(key))
 				};
 				opt.MapInboundClaims = false;
+			});
+		}
+
+		public static void ConfigureAuthorization(this IServiceCollection services)
+		{
+			services.AddAuthorization(options =>
+			{
+				options.AddPolicy("RequireAdminRole", policy => policy.RequireClaim("role", Roles.Admin));
 			});
 		}
 
@@ -119,6 +128,7 @@ namespace app.WebApi.Extensions
 			services.AddScoped<IValidator<LoginModel>, LoginModelValidator>();
 			services.AddScoped<IValidator<RefreshTokenModel>, RefreshTokenModelValidator>();
 			services.AddScoped<IValidator<RevokeTokenModel>, RevokeTokenModelValidator>();
+			services.AddScoped<IValidator<CreateUserModel>, CreateUserModelValidator>();
 		}
 
 		public static void AddDefaultCors(this IServiceCollection services)

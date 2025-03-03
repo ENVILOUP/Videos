@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using app.Application.IRepositories;
 using app.Core.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -14,18 +15,21 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace app.Application.Services
 {
-    public class JWTService(IConfiguration configuration, ILogger<JWTService> logger)
+    public class JWTService(IConfiguration configuration, ILogger<JWTService> logger, IUserRepository userRepository)
     {
 		private readonly IConfiguration _configuration = configuration;
 		private readonly ILogger<JWTService> _logger = logger;
+		private readonly IUserRepository _userRepository = userRepository;
 
-        public string GenerateJwtToken(IdentityUser user)
+        public async Task<string> GenerateJwtToken(IdentityUser user)
 		{
 			var jtiId = Guid.NewGuid().ToString();
+			var userRole = await _userRepository.GetUserRole(user);
+
 			var claims = new[]
 			{
 				new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-				new Claim("role", "user"),
+				new Claim("role", userRole),
 				new Claim(JwtRegisteredClaimNames.Jti, jtiId),
 			};
 
@@ -40,9 +44,9 @@ namespace app.Application.Services
 
 			var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-			var expiresValue = _configuration.GetSection("JWT:AccessTokenExpirationMinutes").Value;
+			var expiresValue = _configuration.GetSection("JWT").GetValue<int>("AccessTokenExpirationMinutes");
 
-			if (string.IsNullOrEmpty(expiresValue))
+			if (expiresValue == 0)
 			{
 				throw new InvalidOperationException("JWT:AccessTokenExpirationMinutes not found");
 			}

@@ -26,6 +26,17 @@ namespace app.Infrastructure.Migrations
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
                 });
 
+            migrationBuilder.InsertData(
+                table: "AspNetRoles",
+                columns: ["Id", "Name", "NormalizedName", "ConcurrencyStamp"],
+                values: new object[,]
+                {
+                    { "1", "User", "USER", Guid.NewGuid().ToString() },
+                    { "2", "Creator", "CREATOR", Guid.NewGuid().ToString() },
+                    { "3", "Moderator", "MODERATOR", Guid.NewGuid().ToString() },
+                    { "4", "Admin", "ADMIN", Guid.NewGuid().ToString() },
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new
@@ -204,6 +215,12 @@ namespace app.Infrastructure.Migrations
                 name: "IX_AspNetUserRoles_RoleId",
                 table: "AspNetUserRoles",
                 column: "RoleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUserRoles_UserId",
+                table: "AspNetUserRoles",
+                column: "UserId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
