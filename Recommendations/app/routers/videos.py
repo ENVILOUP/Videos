@@ -1,9 +1,8 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 import redis.asyncio as aioredis
 
-from app.helpers.exceptions import ValueException
 from app.repository import RedisVideosRecommendation
 from app.schemas import PagedResponse, VideoModel
 from app.helpers.schemas import SuccessResponse
@@ -20,15 +19,9 @@ router = APIRouter()
 )
 async def get_videos(
     redis: Annotated[aioredis.Redis, Depends(get_redis)],
-    page_size: int = 20,
-    page: int = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 20,
+    page: Annotated[int, Query(ge=1)] = 1,
 ):
-    if page < 1:
-        raise ValueException('Page must be greater than 0')
-
-    if page_size < 1 or page_size > 50:
-        raise ValueException('Page size must be between 1 and 50')
-
     repository = RedisVideosRecommendation(redis)
     videos = await repository.get_random_recommendations(page_size)
 
