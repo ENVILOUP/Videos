@@ -1,13 +1,13 @@
-from typing import Annotated, List
-from fastapi import APIRouter, Depends
+from typing import Annotated
+from fastapi import APIRouter, Depends, Query
 
 import redis.asyncio as aioredis
 
-from app.schemas import VideoModel
+from app.repository import RedisVideosRecommendation
+from app.schemas import PagedResponse, VideoModel
 from app.helpers.schemas import SuccessResponse
 from app.helpers.statuses import StatusCodes
 from app.dependencies import get_redis
-from app.services.ml import get_recommendations_for_videos
 
 
 router = APIRouter()
@@ -15,27 +15,26 @@ router = APIRouter()
 
 @router.get(
     path="/",
-    response_model=SuccessResponse[List[VideoModel]]
+    response_model=SuccessResponse[PagedResponse[VideoModel]]
 )
 async def get_videos(
-    user: str,
-    redis: Annotated[aioredis.Redis, Depends(get_redis)]
+    redis: Annotated[aioredis.Redis, Depends(get_redis)],
+    page_size: Annotated[int, Query(ge=1, le=50)] = 20,
+    page: Annotated[int, Query(ge=1)] = 1,
 ):
-    redis_key = f'recommendations:{user}:videos'
-    redis_expire = 60  # sec.
-    videos = await redis.lrange(redis_key, 0, -1)
-
-    if not videos:
-        videos = await get_recommendations_for_videos()
-        await redis.rpush(redis_key, *videos)
-        await redis.expire(redis_key, redis_expire)
-    else:
-        videos = list(map(lambda b: b, videos))
+    repository = RedisVideosRecommendation(redis)
+    videos = await repository.get_random_recommendations(page_size)
 
     return {
         'status_code': StatusCodes.OK,
-        'data': [
-            VideoModel(video_uuid=video)
-            for video in videos
-        ]
+        'data': {
+            'page': page,
+            'page_size': page_size,
+            'items': [
+                VideoModel(
+                    video_uuid=video
+                )
+                for video in videos
+            ]
+        }
     }
