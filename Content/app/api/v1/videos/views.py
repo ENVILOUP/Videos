@@ -39,7 +39,9 @@ async def get_video(
             video_uuid=video.video_uuid,
             title=video.title,
             description=video.description,
-            is_deleted=video.is_deleted
+            is_deleted=video.is_deleted,
+            created_at=video.created_at,
+            modified_at=video.modified_at
         )
     }
 
