@@ -72,7 +72,7 @@ class TestGetVideoByUUID:
         )
 
         with pytest.raises(ValueError, match="Invalid UUID format"):
-            await get_video_by_uuid.execute(
-                video_uuid="12345678-1234-5678-1234-567812345678"
+            await get_video_by_uuid.execute(  
+                video_uuid="12345678-1234-5678-1234-567812345678"  # type: ignore[arg-type]
             )
         GetVideoByUUIDPortMock.get_video_by_uuid.assert_not_awaited()
