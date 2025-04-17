@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends
 from asyncpg import Connection
 
-from app.adapters.get_video_by_uuid.get_videos_by_uuid_from_postgresql import GetVideosByUuidFromPostgreSQL
+from app.api.v1.videos.dependencies import get_video_by_uuid_use_case
 from app.application.use_cases.get_video_by_uuid import GetVideoByUUIDUseCase
 from app.helpers.schemas import SuccessResponse
 from app.helpers.statuses import StatusCodes
@@ -28,13 +28,9 @@ router = APIRouter(
 )
 async def get_video(
     uuid: UUID,
-    db: Annotated[Connection, Depends(database_сonnection)]
+    use_case: Annotated[GetVideoByUUIDUseCase, Depends(get_video_by_uuid_use_case)],
 ):
-    get_video_by_uuid = GetVideoByUUIDUseCase(
-        get_video_by_uuid=GetVideosByUuidFromPostgreSQL(db)
-    )
-
-    video = await get_video_by_uuid.execute(uuid)
+    video = await use_case.execute(uuid)
 
     if not video:
         raise NotFoundException(StatusCodes.NOT_FOUND)
