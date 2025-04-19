@@ -1,7 +1,7 @@
 import logging
 import httpx
 
-from app.config import config
+from app.infrastructure.config.config import config
 
 
 logger = logging.getLogger('uvicorn.error')

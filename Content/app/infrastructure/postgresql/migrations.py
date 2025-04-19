@@ -2,7 +2,7 @@ import logging
 from yoyo import read_migrations
 from yoyo import get_backend
 
-from app.config import config
+from app.infrastructure.config.config import config
 
 
 logger = logging.getLogger('uvicorn.error')

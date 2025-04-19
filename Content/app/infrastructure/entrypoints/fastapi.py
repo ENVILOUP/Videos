@@ -10,11 +10,11 @@ from app.api.swagger import RESPONSES_TYPES_DOC
 from app.api.exceptions import BaseAppException
 from app.api.schemas import ErrorResponse
 from app.api.statuses import StatusCodes
-from app.utils import try_init_kafka_connect
-from app.config import config
+from app.infrastructure.debezium.utils import try_init_kafka_connect
+from app.infrastructure.config.config import config
 from app.api.routers import api_router
-from app.views import router as root_router
-from app.migrations import apply_migrations
+from app.api.views import router as root_router
+from app.infrastructure.postgresql.migrations import apply_migrations
 
 
 logger = logging.getLogger('uvicorn.error')

@@ -16,6 +16,7 @@ class NotFoundException(BaseAppException):
             app_status_code=status_code
         )
 
+
 class ConflictException(BaseAppException):
     """ Conflict exception. HTTP status code 409. """
 
@@ -33,4 +34,14 @@ class DeprecatedException(BaseAppException):
         super().__init__(
             http_status_code=410,
             app_status_code=StatusCodes.DEPRECATED
+        )
+
+
+class SerciceUnavailableException(BaseAppException):
+    """ Service unavailable exception. HTTP status code 503. """
+
+    def __init__(self, status_code: StatusCodes):
+        super().__init__(
+            http_status_code=503,
+            app_status_code=status_code
         )

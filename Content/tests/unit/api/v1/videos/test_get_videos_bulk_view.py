@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from app.api.v1.videos.dependencies import get_videos_by_uuid_list_use_case
 from app.application.use_cases.get_videos_by_uuid_list import GetVideosByUUIDsListUseCase
 from app.core.entities.video import Video
-from app.main import app
+from app.infrastructure.entrypoints.fastapi import app
 
 client = TestClient(app)
 

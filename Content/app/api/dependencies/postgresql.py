@@ -1,9 +1,12 @@
 import logging
-from typing import AsyncGenerator
+from typing import Annotated, AsyncGenerator
 
 from asyncpg import Connection, create_pool, Pool
+from fastapi import Depends
 
-from app.config import config
+from app.adapters.external_system_heath_check.postgresql_heath_check import PostgreSQLHealthCheck
+from app.application.use_cases.check_external_system_health import CheckExternalSystemHealthUseCase
+from app.infrastructure.config.config import config
 
 
 logger = logging.getLogger('uvicorn.error')
@@ -65,3 +68,11 @@ async def database_сonnection() -> AsyncGenerator[Connection, None]:
     finally:
         await database.release(connection)
         logger.debug('Connection released')
+
+
+async def get_postgresql_health_check(
+    database: Annotated[Connection, Depends(database_сonnection)]
+) -> CheckExternalSystemHealthUseCase:
+    return CheckExternalSystemHealthUseCase(
+        external_system_heath_check_port=PostgreSQLHealthCheck(database)
+    )

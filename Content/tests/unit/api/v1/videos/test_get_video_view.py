@@ -7,7 +7,7 @@ from app.api.v1.videos.dependencies import get_video_by_uuid_use_case
 from app.application.use_cases.get_video_by_uuid import GetVideoByUUIDUseCase
 from app.core.entities.video import Video
 from app.core.ports.get_video_by_uuid import GetVideoByUUIDPort
-from app.main import app
+from app.infrastructure.entrypoints.fastapi import app
 
 client = TestClient(app)
 

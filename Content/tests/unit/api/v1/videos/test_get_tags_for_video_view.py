@@ -5,7 +5,7 @@ from app.api.v1.videos.dependencies import get_tags_by_video_uuid_use_case
 from app.application.use_cases.get_tags_by_video_uuid import GetTagsByVideoUUIDUseCase
 from app.core.entities.tag import Tag
 from app.core.ports.get_tags_by_video_uuid import GetTagsByVideoUUIDPort
-from app.main import app
+from app.infrastructure.entrypoints.fastapi import app
 
 client = TestClient(app)
 
