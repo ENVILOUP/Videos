@@ -5,6 +5,7 @@ from asyncpg import Connection
 from fastapi import Depends
 from app.adapters.get_tags_by_video_uuid.get_tags_by_video_uuid_from_postgresql import GetTagsByVideoUUIDPortFromPostgreSQL
 from app.adapters.get_video_by_uuid.get_videos_by_uuid_from_postgresql import GetVideosByUuidFromPostgreSQL
+from app.adapters.get_videos_list_by_uuids.get_videos_list_by_uuids_from_postgresql import GetVideosListByUUIDsFromPostgreSQL
 from app.application.use_cases.get_tags_by_video_uuid import GetTagsByVideoUUIDUseCase
 from app.application.use_cases.get_video_by_uuid import GetVideoByUUIDUseCase
 from app.application.use_cases.get_videos_by_uuid_list import GetVideosByUUIDsListUseCase
@@ -38,5 +39,5 @@ async def get_videos_by_uuid_list_use_case(
     Dependency to get the GetVideosByUUIDListUseCase instance.
     """
     return GetVideosByUUIDsListUseCase(
-        get_videos_list_by_uuids_port=...
+        get_videos_list_by_uuids_port=GetVideosListByUUIDsFromPostgreSQL(database)
     )
