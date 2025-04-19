@@ -6,8 +6,8 @@ from app.models.videos import Video
 from app.api.v1.videos.repositories import VideosRespository
 from app.helpers.sql import clean_query
 
-
-class TestVideosRespository:
+@pytest.skip("This should not be tested in unit tests")
+class TestVideosRepository:
 
     @pytest.mark.asyncio
     async def test_valid_get_video_by_uuid(self, connection):

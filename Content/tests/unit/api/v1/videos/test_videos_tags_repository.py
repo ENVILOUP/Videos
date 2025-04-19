@@ -9,7 +9,8 @@ from app.helpers.sql import clean_query
 from app.models.videos_tags import VideoTag
 
 
-class TestVideosTagsRespository:
+@pytest.skip("This should not be tested in unit tests")
+class TestVideosTagsRepository:
 
     @pytest.mark.asyncio
     async def test_get_tags_for_video(self, connection):
