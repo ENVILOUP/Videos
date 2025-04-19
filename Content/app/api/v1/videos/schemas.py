@@ -3,7 +3,7 @@ import datetime
 from uuid import UUID
 from pydantic import BaseModel, computed_field
 
-from app.config import config
+from app.infrastructure.config.config import config
 
 
 class VideoModel(BaseModel):
