@@ -2,9 +2,9 @@ import logging
 from typing import Annotated
 from asyncpg import Connection
 from fastapi import APIRouter, Depends
-from app.dependencies.postgresql import database_сonnection
-from app.helpers.schemas import SuccessResponse
-from app.helpers.statuses import StatusCodes
+from app.api.dependencies.postgresql import database_сonnection
+from app.api.schemas import SuccessResponse
+from app.api.statuses import StatusCodes
 
 router = APIRouter()
 

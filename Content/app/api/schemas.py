@@ -2,7 +2,7 @@
 from typing import Generic, TypeVar
 from pydantic import BaseModel
 
-from app.helpers.statuses import StatusCodes
+from app.api.statuses import StatusCodes
 
 T = TypeVar('T')
 

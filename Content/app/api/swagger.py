@@ -1,5 +1,5 @@
-from app.helpers.schemas import ErrorResponse
-from app.helpers.statuses import StatusCodes
+from app.api.schemas import ErrorResponse
+from app.api.statuses import StatusCodes
 
 
 RESPONSES_TYPES_DOC = {

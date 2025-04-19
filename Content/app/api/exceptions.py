@@ -1,4 +1,4 @@
-from app.helpers.statuses import StatusCodes
+from app.api.statuses import StatusCodes
 
 
 class BaseAppException(Exception):

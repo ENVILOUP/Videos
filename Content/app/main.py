@@ -5,11 +5,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.dependencies.postgresql import database
-from app.helpers.swagger import RESPONSES_TYPES_DOC
-from app.helpers.exceptions import BaseAppException
-from app.helpers.schemas import ErrorResponse
-from app.helpers.statuses import StatusCodes
+from app.api.dependencies.postgresql import database
+from app.api.swagger import RESPONSES_TYPES_DOC
+from app.api.exceptions import BaseAppException
+from app.api.schemas import ErrorResponse
+from app.api.statuses import StatusCodes
 from app.utils import try_init_kafka_connect
 from app.config import config
 from app.api.routers import api_router
