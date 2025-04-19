@@ -85,8 +85,3 @@ class TestGetVideoViewV1:
         assert response.status_code == 422
         assert response.json()["success"] == False
         assert response.json()["status_code"] == 1001
-
-
-
-
-

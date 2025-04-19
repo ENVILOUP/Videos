@@ -9,7 +9,7 @@ from app.helpers.sql import clean_query
 from app.models.videos_tags import VideoTag
 
 
-@pytest.skip("This should not be tested in unit tests")
+@pytest.skip("This should not be tested in unit tests", allow_module_level=True)
 class TestVideosTagsRepository:
 
     @pytest.mark.asyncio

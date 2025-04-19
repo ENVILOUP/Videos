@@ -6,7 +6,7 @@ from app.models.videos import Video
 from app.api.v1.videos.repositories import VideosRespository
 from app.helpers.sql import clean_query
 
-@pytest.skip("This should not be tested in unit tests")
+@pytest.skip("This should not be tested in unit tests", allow_module_level=True)
 class TestVideosRepository:
 
     @pytest.mark.asyncio

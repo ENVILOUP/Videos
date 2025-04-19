@@ -5,7 +5,8 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends
 from asyncpg import Connection
 
-from app.api.v1.videos.dependencies import get_video_by_uuid_use_case
+from app.api.v1.videos.dependencies import get_tags_by_video_uuid_use_case, get_video_by_uuid_use_case
+from app.application.use_cases.get_tags_by_video_uuid import GetTagsByVideoUUIDUseCase
 from app.application.use_cases.get_video_by_uuid import GetVideoByUUIDUseCase
 from app.helpers.schemas import SuccessResponse
 from app.helpers.statuses import StatusCodes
@@ -44,33 +45,6 @@ async def get_video(
             is_deleted=video.is_deleted,
             created_at=video.created_at,
             modified_at=video.modified_at
-        )
-    }
-
-
-@router.get(
-    path="/{uuid}/with-tags/",
-    response_model=SuccessResponse[VideoModelWithTags]
-)
-async def get_video_with_tags(
-    uuid: UUID,
-    db: Annotated[Connection, Depends(database_сonnection)]
-):
-    video = await VideosRespository(db).get_video_by_uuid(uuid)
-
-    if not video:
-        raise NotFoundException(StatusCodes.NOT_FOUND)
-
-    tags = await VideosTagsRespository(db).get_tags_for_video(uuid)
-
-    return {
-        'status_code': StatusCodes.OK,
-        'data': VideoModelWithTags(
-            video_uuid=video.video_uuid,
-            title=video.title,
-            description=video.description,
-            is_deleted=video.is_deleted,
-            tags=[tag.tag for tag in tags]
         )
     }
 
@@ -187,9 +161,9 @@ async def delete_video(
 )
 async def get_tags_for_video(
     video_uuid: UUID,
-    db: Annotated[Connection, Depends(database_сonnection)]
+    use_case: Annotated[GetTagsByVideoUUIDUseCase, Depends(get_tags_by_video_uuid_use_case)]
 ):
-    videos_tags = await VideosTagsRespository(db).get_tags_for_video(video_uuid)
+    videos_tags = await use_case.execute(video_uuid)
 
     return {
         'status_code': StatusCodes.OK,
