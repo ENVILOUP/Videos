@@ -1,6 +1,6 @@
 
 from datetime import datetime
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock
 from uuid import UUID
 from fastapi.testclient import TestClient
 from app.api.v1.videos.dependencies import get_video_by_uuid_use_case
@@ -23,8 +23,8 @@ class TestGetVideoView:
                 yt_id="abcd1234",
                 title="Test Video",
                 description="This is a test video.",
-                created_at=datetime.now(),
-                modified_at=datetime.now(),
+                created_at=datetime.fromisoformat("2025-01-01T00:00:00"),
+                modified_at=datetime.fromisoformat("2025-01-01T00:00:00"),
                 is_deleted=False
             )
         )
@@ -53,7 +53,17 @@ class TestGetVideoView:
         assert response.json()["status_code"] == 1000
         assert response.json()["success"] == True
         assert "data" in response.json()
-        assert response.json()["data"]["video_uuid"] == valid_uuid
+        assert response.json()["data"] == {
+            "video_uuid": "123e4567-e89b-12d3-a456-426614174000",
+            "title": "Test Video",
+            "description": "This is a test video.",
+            "is_deleted": False,
+            "created_at": '2025-01-01T00:00:00',
+            "modified_at": '2025-01-01T00:00:00',
+            "video_url": "http://cdn.enviloup.localhost/videos/123e4567-e89b-12d3-a456-426614174000/master.m3u8",
+            "thumbnail_url": "http://cdn.enviloup.localhost/thumbnails/123e4567-e89b-12d3-a456-426614174000/default.webp",
+            "publication_date": '2025-01-01T00:00:00'
+        }
 
         app.dependency_overrides.clear()
     
@@ -78,7 +88,7 @@ class TestGetVideoView:
         """
         invalid_uuid = "invalid-uuid"
 
-        app.dependency_overrides[get_video_by_uuid_use_case] = self.mock_get_video_by_uuid_use_case
+        app.dependency_overrides[get_video_by_uuid_use_case] = MagicMock()
         
         response = client.get(f"/api/v1/videos/{invalid_uuid}")
         

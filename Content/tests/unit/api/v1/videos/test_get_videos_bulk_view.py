@@ -1,6 +1,6 @@
 
 from datetime import datetime
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock
 from uuid import UUID
 from fastapi.testclient import TestClient
 from app.api.v1.videos.dependencies import get_videos_by_uuid_list_use_case
@@ -102,3 +102,19 @@ class TestGetVideosBulkView:
         assert response.json()["status_code"] == 1000
         assert response.json()["success"] is True
         assert response.json()["data"] == []
+
+    def test_invalid_uuid(self):
+        """
+        Test the invalid UUID case for the get_videos_bulk endpoint.
+        """
+        video_uuids = [
+            "123e4567-e89b-12d3-a456-426614174000",
+            "invalid-uuid"
+        ]
+        app.dependency_overrides[get_videos_by_uuid_list_use_case] = MagicMock()
+        
+        response = client.post("api/v1/videos/get-bulk/", json=video_uuids)
+        
+        assert response.status_code == 422
+        assert response.json()["success"] is False
+        assert response.json()["status_code"] == 1001

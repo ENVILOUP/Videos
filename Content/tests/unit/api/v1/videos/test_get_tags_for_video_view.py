@@ -17,8 +17,16 @@ class TestGetTagsForVideoView:
         MockGetTagsByVideoUUIDPort = Mock(spec=GetTagsByVideoUUIDPort)
         MockGetTagsByVideoUUIDPort.get_tags_by_video_uuid = AsyncMock(
             return_value=[
-                Tag(tag='foo', created_at=datetime.now(), modified_at=datetime.now()),
-                Tag(tag='bar', created_at=datetime.now(), modified_at=datetime.now())
+                Tag(
+                    tag='foo',
+                    created_at=datetime.fromisoformat('2025-01-01T00:00:00'),
+                    modified_at=datetime.fromisoformat('2025-01-01T00:00:00')
+                ),
+                Tag(
+                    tag='bar',
+                    created_at=datetime.fromisoformat('2025-01-02T00:00:00'),
+                    modified_at=datetime.fromisoformat('2025-01-02T00:00:00')
+                )
             ]
         )
         return GetTagsByVideoUUIDUseCase(
