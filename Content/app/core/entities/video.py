@@ -7,9 +7,9 @@ from uuid import UUID
 @dataclass
 class Video:
     video_uuid: UUID
-    yt_id: Optional[str]
     title: str
     description: Optional[str]
     created_at: datetime
     modified_at: datetime
     is_deleted: bool
+    yt_id: Optional[str] = None

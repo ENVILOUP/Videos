@@ -12,7 +12,7 @@ from app.main import app
 client = TestClient(app)
 
 
-class TestGetVideoViewV1:
+class TestGetVideoView:
 
     @staticmethod
     async def mock_get_video_by_uuid_use_case() -> GetVideoByUUIDUseCase:
@@ -40,7 +40,7 @@ class TestGetVideoViewV1:
             get_video_by_uuid=MockGetVideoByUUIDPort
         )
 
-    def test_get_video_by_uuid_happy_path(self):
+    def test_happy_path(self):
         """
         Test the retrieval of a video by its UUID.
         """
@@ -57,7 +57,7 @@ class TestGetVideoViewV1:
 
         app.dependency_overrides.clear()
     
-    def test_get_video_by_uuid_not_found(self):
+    def test_not_found(self):
         """
         Test the retrieval of a video by UUID that does not exist.
         """
@@ -72,7 +72,7 @@ class TestGetVideoViewV1:
 
         app.dependency_overrides.clear()
     
-    def test_get_video_by_uuid_invalid_uuid(self):
+    def test_invalid_uuid(self):
         """
         Test the retrieval of a video by an invalid UUID.
         """

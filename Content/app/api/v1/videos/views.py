@@ -5,13 +5,14 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends
 from asyncpg import Connection
 
-from app.api.v1.videos.dependencies import get_tags_by_video_uuid_use_case, get_video_by_uuid_use_case
+from app.api.v1.videos.dependencies import get_tags_by_video_uuid_use_case, get_video_by_uuid_use_case, get_videos_by_uuid_list_use_case
 from app.application.use_cases.get_tags_by_video_uuid import GetTagsByVideoUUIDUseCase
 from app.application.use_cases.get_video_by_uuid import GetVideoByUUIDUseCase
+from app.application.use_cases.get_videos_by_uuid_list import GetVideosByUUIDsListUseCase
 from app.helpers.schemas import SuccessResponse
 from app.helpers.statuses import StatusCodes
 from app.helpers.exceptions import ConflictException, NotFoundException
-from app.api.v1.videos.schemas import VideoCreationModel, VideoModel, VideoModelWithTags
+from app.api.v1.videos.schemas import VideoCreationModel, VideoModel
 from app.api.v1.videos.repositories import VideosRespository, VideosTagsRespository
 from app.dependencies.postgresql import database_сonnection
 
@@ -54,23 +55,24 @@ async def get_video(
     response_model=SuccessResponse[List[VideoModel]]
 )
 async def get_videos_bulk(
-    db: Annotated[Connection, Depends(database_сonnection)],
+    use_case: Annotated[GetVideosByUUIDsListUseCase, Depends(get_videos_by_uuid_list_use_case)],
     video_uuids: List[UUID],
 ):
-    videos = await VideosRespository(db).get_videos_by_uuids_list(video_uuids)
+    videos = await use_case.execute(video_uuids)
 
-    videos = [
-        VideoModel(
-            video_uuid=video.video_uuid,
-            title=video.title,
-            description=video.description,
-            is_deleted=video.is_deleted
-        )
-        for video in videos
-    ]
     return {
         'status_code': StatusCodes.OK,
-        'data': videos
+        'data': [
+            VideoModel(
+                video_uuid=video.video_uuid,
+                title=video.title,
+                description=video.description,
+                is_deleted=video.is_deleted,
+                created_at=video.created_at,
+                modified_at=video.modified_at
+            )
+            for video in videos
+        ]
     }
 
 

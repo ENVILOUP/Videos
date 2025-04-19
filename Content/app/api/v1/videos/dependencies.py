@@ -7,6 +7,7 @@ from app.adapters.get_tags_by_video_uuid.get_tags_by_video_uuid_from_postgresql 
 from app.adapters.get_video_by_uuid.get_videos_by_uuid_from_postgresql import GetVideosByUuidFromPostgreSQL
 from app.application.use_cases.get_tags_by_video_uuid import GetTagsByVideoUUIDUseCase
 from app.application.use_cases.get_video_by_uuid import GetVideoByUUIDUseCase
+from app.application.use_cases.get_videos_by_uuid_list import GetVideosByUUIDsListUseCase
 from app.dependencies.postgresql import database_сonnection
 
 
@@ -28,4 +29,14 @@ async def get_tags_by_video_uuid_use_case(
     """
     return GetTagsByVideoUUIDUseCase(
         get_video_tags_by_video_uuid=GetTagsByVideoUUIDPortFromPostgreSQL(database)
+    )
+
+async def get_videos_by_uuid_list_use_case(
+    database: Annotated[Connection, Depends(database_сonnection)],
+) -> GetVideosByUUIDsListUseCase:
+    """
+    Dependency to get the GetVideosByUUIDListUseCase instance.
+    """
+    return GetVideosByUUIDsListUseCase(
+        get_videos_list_by_uuids_port=...
     )

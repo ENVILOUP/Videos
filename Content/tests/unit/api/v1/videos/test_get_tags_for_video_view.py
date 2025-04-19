@@ -33,7 +33,7 @@ class TestGetTagsForVideoView:
             get_video_tags_by_video_uuid=MockGetTagsByVideoUUIDPort
         )
 
-    def test_get_tags_for_video_happy_path(self):
+    def test_happy_path(self):
         """
         Test the happy path for getting tags for a video.
         """
@@ -49,7 +49,7 @@ class TestGetTagsForVideoView:
 
         app.dependency_overrides.clear()
 
-    def test_get_tags_for_video_not_found(self):
+    def test_not_found(self):
         """
         Test the case when no tags are found for a video.
         """
@@ -65,7 +65,7 @@ class TestGetTagsForVideoView:
 
         app.dependency_overrides.clear()
 
-    def test_get_tags_for_video_invalid_uuid(self):
+    def test_invalid_uuid(self):
         """
         Test the case when an invalid UUID is provided.
         """
