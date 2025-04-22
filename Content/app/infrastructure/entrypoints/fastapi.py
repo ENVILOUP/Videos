@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import asyncio
 import logging
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -25,7 +26,7 @@ def create_app() -> FastAPI:
     async def lifespan(app: FastAPI):
         await database.connect()
         apply_migrations()
-        await try_init_kafka_connect()
+        asyncio.create_task(try_init_kafka_connect())
         yield
         await database.disconnect()
 
