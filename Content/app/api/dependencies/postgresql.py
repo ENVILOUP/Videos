@@ -4,7 +4,7 @@ from typing import Annotated, AsyncGenerator
 from asyncpg import Connection
 from fastapi import Depends
 
-from app.adapters.external_system_heath_check.postgresql_heath_check import PostgreSQLHealthCheck
+from app.adapters.postgresql_heath_check import PostgreSQLHealthCheck
 from app.application.use_cases.check_external_system_health import CheckExternalSystemHealthUseCase
 from app.infrastructure.postgresql.database import database
 
