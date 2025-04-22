@@ -2,7 +2,7 @@ import logging
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from app.api.dependencies.postgresql import get_postgresql_health_check
-from app.api.exceptions import SerciceUnavailableException
+from app.api.exceptions import ServiceUnavailableException
 from app.api.schemas import SuccessResponse
 from app.api.statuses import StatusCodes
 from app.application.use_cases.check_external_system_health import CheckExternalSystemHealthUseCase
@@ -23,7 +23,7 @@ async def health_check(
 
     if not is_healthy:
         logger.critical("Health check failed")
-        raise SerciceUnavailableException(StatusCodes.EXTERNAL_SERVICE_UNAVAILABLE)
+        raise ServiceUnavailableException(StatusCodes.EXTERNAL_SERVICE_UNAVAILABLE)
 
     return {
         'status_code': StatusCodes.OK,

@@ -37,7 +37,7 @@ class DeprecatedException(BaseAppException):
         )
 
 
-class SerciceUnavailableException(BaseAppException):
+class ServiceUnavailableException(BaseAppException):
     """ Service unavailable exception. HTTP status code 503. """
 
     def __init__(self, status_code: StatusCodes):
