@@ -34,7 +34,7 @@ def create_app() -> FastAPI:
         title='Content Service',
         lifespan=lifespan,
         debug=config.debug,
-        responses=RESPONSES_TYPES_DOC
+        responses=RESPONSES_TYPES_DOC  # type: ignore
     )
 
     app.add_middleware(
