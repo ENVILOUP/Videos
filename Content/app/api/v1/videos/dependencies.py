@@ -12,6 +12,14 @@ from app.application.use_cases.get_videos_by_uuid_list import GetVideosByUUIDsLi
 from app.api.dependencies.postgresql import database_сonnection
 
 
+async def get_use_case(
+    use_case: type
+):
+    """
+    Dependency to get the use case instance.
+    """
+    return use_case_class(database)
+
 async def get_video_by_uuid_use_case(
     database: Annotated[Connection, Depends(database_сonnection)],
 ) -> GetVideoByUUIDUseCase:
