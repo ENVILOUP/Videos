@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from uuid import UUID
 
 
 @dataclass
 class FileStatus:
-    file_uuid: UUID
+    file_name: str
     file_hash: str
     writed_bytes: int
     total_bytes: int
