@@ -27,7 +27,7 @@ class TestGetVideoByUUID:
                 is_deleted=False
             )
         )
-        
+
         get_video_by_uuid = GetVideoByUUIDUseCase(
             get_video_by_uuid=GetVideoByUUIDPortMock
         )
@@ -62,7 +62,7 @@ class TestGetVideoByUUID:
         GetVideoByUUIDPortMock.get_video_by_uuid.assert_awaited_once_with(
             UUID("12345678-1234-5678-1234-567812345678")
         )
-    
+
     @pytest.mark.asyncio
     async def test_get_video_by_uuid_invalid_uuid(self):
         """Test the retrieval of a video by an invalid UUID."""

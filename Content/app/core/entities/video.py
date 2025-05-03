@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 from uuid import UUID
 
@@ -13,3 +14,16 @@ class Video:
     modified_at: datetime
     is_deleted: bool
     yt_id: Optional[str] = None
+
+
+class VideoStatuses(str, Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    PROCESSED = "processed"
+    ERROR = "error"
+
+
+@dataclass
+class VideoStatus:
+    status: VideoStatuses
+    created_at: datetime
