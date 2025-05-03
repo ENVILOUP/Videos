@@ -1,64 +1,14 @@
 
 
 from datetime import datetime
-from typing import Callable, Dict, List, Optional
 from uuid import UUID
 
 import pytest
 from app.application.use_cases.create_video import CreateVideoUseCase
 from app.core.entities.video import Video, VideoStatus, VideoStatuses
-from app.core.ports.video_statuses_repository import VideoStatusesRepository
-from app.core.ports.videos_queue import TaskId, VideosQueue
-from app.core.ports.videos_repository import VideosRepository
-
-
-class InMemoryVideosRepository(VideosRepository):
-    def __init__(self, videos: List[Video]):
-        self.videos = videos
-
-    async def create_video(self, video: Video) -> Optional[Video]:
-        # Simulate video creation
-        for existing_video in self.videos:
-            # Check conflict with existing video UUID
-            if existing_video.video_uuid == video.video_uuid:
-                return None
-        self.videos.append(video)
-        return video
-
-
-class InMemoryVideoStatusesRepository(VideoStatusesRepository):
-    def __init__(self, statuses: Dict[UUID, VideoStatus], get_time: Callable[[], datetime] = datetime.now):
-        self.statuses = statuses
-        self.get_time = get_time
-
-    async def add_video_status(self, video_uuid: UUID, video_status: VideoStatuses) -> VideoStatus:
-        new_status = VideoStatus(
-            status=video_status,
-            created_at=self.get_time()
-        )
-        self.statuses[video_uuid] = new_status
-        return new_status
-
-    async def get_current_video_status(self, video_uuid: UUID) -> VideoStatus:
-        raise NotImplementedError
-
-    async def get_video_status_history(self, video_uuid: UUID) -> List[VideoStatus]:
-        raise NotImplementedError
-
-
-class InMemoryVideosQueue(VideosQueue):
-    def __init__(self, queue: List[Dict[str, str]]):
-        self.queue = queue
-
-    async def add_video_to_process(self, video_uuid: UUID, thumbnail_raw_url: str, video_raw_url: str) -> str:
-        task_id = str(len(self.queue) + 1)
-        self.queue.append({
-            "video_uuid": str(video_uuid),
-            "thumbnail_raw_url": thumbnail_raw_url,
-            "video_raw_url": video_raw_url,
-            "task_id": task_id
-        })
-        return task_id
+from tests.unit.mocks.video_statuses_repository import InMemoryVideoStatusesRepository
+from tests.unit.mocks.videos_queue import InMemoryVideosQueue
+from tests.unit.mocks.videos_repository import InMemoryVideosRepository
 
 
 class TestCreateVideoUseCase:
