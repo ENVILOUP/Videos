@@ -8,6 +8,7 @@ class FileStatus:
     writed_bytes: int
     total_bytes: int
 
+
 @dataclass
 class FileMetadata:
     file_hash: str

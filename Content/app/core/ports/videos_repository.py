@@ -1,5 +1,3 @@
-
-
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -11,4 +9,3 @@ class VideosRepository(ABC):
     @abstractmethod
     async def create_video(self, video: Video) -> Optional[Video]:
         pass
-

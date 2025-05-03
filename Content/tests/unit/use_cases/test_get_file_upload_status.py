@@ -4,7 +4,6 @@ from app.core.entities.files import FileMetadata, FileStatus
 from tests.unit.mocks.file_upload_repository import InMemoryFileUploadRepository
 
 
-
 class TestGetOrCreateFileUploadStatusUseCase:
     @pytest.mark.asyncio
     async def test_execute_returns_existing_file_status(self):

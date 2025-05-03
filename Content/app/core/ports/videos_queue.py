@@ -17,5 +17,3 @@ class VideosQueue(ABC):
     ) -> TaskId:
         """Add a video to the processing queue."""
         pass
-
-    

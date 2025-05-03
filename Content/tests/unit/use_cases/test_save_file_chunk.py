@@ -37,7 +37,7 @@ class TestSaveFileChunkUseCase:
         assert file_storage_repository.storage["test_file"] == bytearray(
             b"0123456789"
         )
-    
+
     @pytest.mark.asyncio
     async def test_save_file_chunk_with_partial_write(self):
         file_upload_status_repostory = InMemoryFileUploadRepository(data={
