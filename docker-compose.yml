@@ -12,9 +12,9 @@ services:
     image: nginx
     ports:
       - "127.0.0.1:80:80"
+    hostname: api_gateway
     volumes:
       - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./Content/nginx/conf.d/cdn.enviloup.conf:/etc/nginx/conf.d/cdn.enviloup.conf:ro
       - ./Content/nginx/conf.d/content-app.conf:/etc/nginx/conf.d/content-app.conf:ro
       - ./Content/fixtures/media:/var/www/media:ro
       - ./Recommendations/nginx/conf.d/recommendations-app.conf:/etc/nginx/conf.d/recommendations-app.conf:ro
@@ -71,6 +71,7 @@ services:
     command: "--log-level info"
     environment:
       DATABASE: postgres://postgres:postgres@pg:5432/contentdb
+      CDN_BASE_URL: http://cdn.enviloup.localhost:8085
     healthcheck:
       <<: *services-healthcheck
     depends_on:
