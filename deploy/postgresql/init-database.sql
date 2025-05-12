@@ -6,3 +6,6 @@ CREATE DATABASE authdb;
 
 -- Create the database for Profile service
 CREATE DATABASE profiledb;
+
+-- Create the database for Keycloak
+CREATE DATABASE keycloak;

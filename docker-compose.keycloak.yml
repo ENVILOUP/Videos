@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15.8-bullseye
+    container_name: postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data
+    command: postgres -c config_file=/etc/postgresql/common.conf
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./deploy/postgresql/conf/common.conf:/etc/postgresql/common.conf:ro
+      - ./deploy/postgresql/init-database.sql:/docker-entrypoint-initdb.d/init-database.sql:ro
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - keycloak_net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2
+    container_name: keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_HOSTNAME: localhost
+      KEYCLOAK_ADMIN: maximz
+      KEYCLOAK_ADMIN_PASSWORD: 1234
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    ports:
+      - "9090:8080"
+    volumes:
+      - ./deploy/keycloak:/opt/keycloak/data/import
+    depends_on:
+      - postgres
+    networks:
+      - keycloak_net
+
+volumes:
+  postgres_data:
+
+networks:
+  keycloak_net:
